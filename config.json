@@ -1,0 +1,148 @@
+{
+  "game": {
+    "name": "Grand Line Reels",
+    "theme": "One Piece",
+    "denomination": 0.01,
+    "reels": 3,
+    "stops_per_reel": 22,
+    "paylines": 1,
+    "display": "3x3"
+  },
+  "reel_strips": {
+    "reel_1": [
+      "M",
+      "M",
+      "M",
+      "M",
+      "M",
+      "M",
+      "W",
+      "W",
+      "W",
+      "W",
+      "W",
+      "C",
+      "C",
+      "C",
+      "C",
+      "D",
+      "D",
+      "S",
+      "S",
+      "B",
+      "B",
+      "B"
+    ],
+    "reel_2": [
+      "M",
+      "M",
+      "M",
+      "M",
+      "M",
+      "M",
+      "W",
+      "W",
+      "W",
+      "W",
+      "W",
+      "C",
+      "C",
+      "C",
+      "C",
+      "D",
+      "D",
+      "S",
+      "S",
+      "B",
+      "B",
+      "B"
+    ],
+    "reel_3": [
+      "M",
+      "M",
+      "M",
+      "M",
+      "M",
+      "M",
+      "W",
+      "W",
+      "W",
+      "W",
+      "W",
+      "C",
+      "C",
+      "C",
+      "C",
+      "D",
+      "D",
+      "S",
+      "S",
+      "B",
+      "B",
+      "B"
+    ]
+  },
+  "paytable": {
+    "3M": {
+      "multiplier": 8,
+      "payout": 0.08,
+      "description": "Three Meat"
+    },
+    "3W": {
+      "multiplier": 15,
+      "payout": 0.15,
+      "description": "Three Wanted Poster"
+    },
+    "3C": {
+      "multiplier": 40,
+      "payout": 0.4,
+      "description": "Three Treasure Chest"
+    },
+    "3D": {
+      "multiplier": 45,
+      "payout": 0.45,
+      "description": "Three Devil Fruit"
+    },
+    "2M": {
+      "multiplier": 3,
+      "payout": 0.03,
+      "description": "Two Meat"
+    },
+    "2W": {
+      "multiplier": 3,
+      "payout": 0.03,
+      "description": "Two Wanted Poster"
+    }
+  },
+  "bonus": {
+    "trigger": "Three Straw Hats anywhere",
+    "trigger_probability": 0.000751,
+    "feature": "Treasure Hunt",
+    "structure": "Pick 3 of 9 chests",
+    "chest_pool": [
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      5,
+      5
+    ],
+    "average_payout_multiplier": 9,
+    "average_payout_dollars": 0.09
+  },
+  "math": {
+    "theoretical_rtp": 0.90139,
+    "theoretical_rtp_pct": 90.139,
+    "hit_frequency": 0.133546,
+    "hit_frequency_pct": 13.3546,
+    "ev_per_spin": 0.009014,
+    "house_edge_pct": 9.861,
+    "simulation_spins": 1000,
+    "simulation_rtp_pct": 77.4,
+    "longest_dry_spell": 29,
+    "average_dry_spell": 7.77
+  }
+}
