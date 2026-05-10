@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grand Line Reels</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+
+    <header>
+      <h1>⚓ GRAND LINE REELS</h1>
+      <p class="tagline">Sail the Grand Line. Chase the One Piece.</p>
+    </header>
+
+    <div id="stats-bar">
+      <div class="stat"><span class="stat-label">BALANCE</span><span class="stat-value" id="balance">$5.00</span></div>
+      <div class="stat"><span class="stat-label">BET</span><span class="stat-value" id="bet">$0.01</span></div>
+      <div class="stat"><span class="stat-label">WIN</span><span class="stat-value" id="win-display">$0.00</span></div>
+      <div class="stat"><span class="stat-label">SPINS</span><span class="stat-value" id="spin-count">0</span></div>
+    </div>
+
+    <div id="game-area">
+      <div id="reel-container">
+        <div class="reel-wrapper">
+          <div class="reel" id="reel-0">
+            <div class="symbol-tile" id="r0-top"></div>
+            <div class="symbol-tile payline" id="r0-mid"></div>
+            <div class="symbol-tile" id="r0-bot"></div>
+          </div>
+        </div>
+        <div class="reel-wrapper">
+          <div class="reel" id="reel-1">
+            <div class="symbol-tile" id="r1-top"></div>
+            <div class="symbol-tile payline" id="r1-mid"></div>
+            <div class="symbol-tile" id="r1-bot"></div>
+          </div>
+        </div>
+        <div class="reel-wrapper">
+          <div class="reel" id="reel-2">
+            <div class="symbol-tile" id="r2-top"></div>
+            <div class="symbol-tile payline" id="r2-mid"></div>
+            <div class="symbol-tile" id="r2-bot"></div>
+          </div>
+        </div>
+        <div id="payline-bar-top"></div>
+        <div id="payline-bar-bot"></div>
+      </div>
+
+      <div id="message-box">
+        <span id="message">Press SPIN to set sail</span>
+      </div>
+    </div>
+
+    <div id="controls">
+      <button id="spin-btn" onclick="spin()">SPIN</button>
+      <button id="max-btn" onclick="maxBet()">MAX BET</button>
+      <button id="reset-btn" onclick="resetGame()">RESET</button>
+    </div>
+
+    <div id="paytable">
+      <h3>PAYTABLE</h3>
+      <div class="pay-grid">
+        <div class="pay-row"><span class="pay-combo"><span class="sym-icon meat">M</span><span class="sym-icon meat">M</span><span class="sym-icon meat">M</span></span><span class="pay-val">8x — $0.08</span></div>
+        <div class="pay-row"><span class="pay-combo"><span class="sym-icon wanted">W</span><span class="sym-icon wanted">W</span><span class="sym-icon wanted">W</span></span><span class="pay-val">15x — $0.15</span></div>
+        <div class="pay-row"><span class="pay-combo"><span class="sym-icon chest">C</span><span class="sym-icon chest">C</span><span class="sym-icon chest">C</span></span><span class="pay-val">40x — $0.40</span></div>
+        <div class="pay-row"><span class="pay-combo"><span class="sym-icon devil">D</span><span class="sym-icon devil">D</span><span class="sym-icon devil">D</span></span><span class="pay-val">45x — $0.45</span></div>
+        <div class="pay-row"><span class="pay-combo"><span class="sym-icon meat">M</span><span class="sym-icon meat">M</span><span class="sym-icon any">?</span></span><span class="pay-val">3x — $0.03</span></div>
+        <div class="pay-row"><span class="pay-combo"><span class="sym-icon wanted">W</span><span class="sym-icon wanted">W</span><span class="sym-icon any">?</span></span><span class="pay-val">3x — $0.03</span></div>
+        <div class="pay-row"><span class="pay-combo"><span class="sym-icon hat">S</span><span class="sym-icon hat">S</span><span class="sym-icon hat">S</span></span><span class="pay-val">BONUS</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="bonus-overlay" class="hidden">
+    <div id="bonus-modal">
+      <h2>⚓ TREASURE HUNT</h2>
+      <p id="bonus-instruction">Three Straw Hats! Pick 3 chests to reveal your treasure.</p>
+      <div id="chest-grid"></div>
+      <div id="bonus-total" class="hidden"></div>
+      <button id="bonus-close" class="hidden" onclick="closeBonus()">BACK TO SEA</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
