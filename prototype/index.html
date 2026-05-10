@@ -11,79 +11,93 @@
 <body>
 <canvas id="ocean-canvas"></canvas>
 <div id="vignette"></div>
-<div id="app">
-  <header>
-    <div id="title-anchor">⚓</div>
-    <h1>GRAND LINE REELS</h1>
-    <p class="tagline">Sail the Grand Line &nbsp;·&nbsp; Chase the One Piece</p>
-  </header>
-  <div id="stats-bar">
-    <div class="stat"><span class="stat-label">BALANCE</span><span class="stat-value" id="balance">$5.00</span></div>
-    <div class="stat-divider"></div>
-    <div class="stat"><span class="stat-label">BET</span><span class="stat-value" id="bet">$0.01</span></div>
-    <div class="stat-divider"></div>
-    <div class="stat"><span class="stat-label">WIN</span><span class="stat-value win-stat" id="win-display">$0.00</span></div>
-    <div class="stat-divider"></div>
-    <div class="stat"><span class="stat-label">SPINS</span><span class="stat-value" id="spin-count">0</span></div>
-  </div>
-  <div id="game-area">
-    <div id="reel-frame">
-      <div id="frame-top-left" class="frame-corner"></div>
-      <div id="frame-top-right" class="frame-corner"></div>
-      <div id="frame-bot-left" class="frame-corner"></div>
-      <div id="frame-bot-right" class="frame-corner"></div>
-      <div id="reels-wrapper">
-        <div class="reel-col" id="col-0">
-          <div class="symbol-tile off-line" id="r0-top"></div>
-          <div class="symbol-tile on-line" id="r0-mid"></div>
-          <div class="symbol-tile off-line" id="r0-bot"></div>
+
+<div id="layout">
+
+  <div id="app">
+    <header>
+      <div id="title-anchor">⚓</div>
+      <h1>GRAND LINE REELS</h1>
+      <p class="tagline">Sail the Grand Line &nbsp;·&nbsp; Chase the One Piece</p>
+    </header>
+
+    <div id="stats-bar">
+      <div class="stat"><span class="stat-label">BALANCE</span><span class="stat-value" id="balance">$5.00</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-label">BET</span><span class="stat-value">$0.01</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-label">WIN</span><span class="stat-value win-stat" id="win-display">$0.00</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-label">SPINS</span><span class="stat-value" id="spin-count">0</span></div>
+    </div>
+
+    <div id="game-area">
+      <div id="reel-frame">
+        <div id="frame-top-left" class="frame-corner"></div>
+        <div id="frame-top-right" class="frame-corner"></div>
+        <div id="frame-bot-left" class="frame-corner"></div>
+        <div id="frame-bot-right" class="frame-corner"></div>
+        <div id="reels-wrapper">
+          <div class="reel-col">
+            <div class="symbol-tile off-line" id="r0-top"></div>
+            <div class="symbol-tile on-line"  id="r0-mid"></div>
+            <div class="symbol-tile off-line" id="r0-bot"></div>
+          </div>
+          <div class="reel-separator"></div>
+          <div class="reel-col">
+            <div class="symbol-tile off-line" id="r1-top"></div>
+            <div class="symbol-tile on-line"  id="r1-mid"></div>
+            <div class="symbol-tile off-line" id="r1-bot"></div>
+          </div>
+          <div class="reel-separator"></div>
+          <div class="reel-col">
+            <div class="symbol-tile off-line" id="r2-top"></div>
+            <div class="symbol-tile on-line"  id="r2-mid"></div>
+            <div class="symbol-tile off-line" id="r2-bot"></div>
+          </div>
         </div>
-        <div class="reel-separator"></div>
-        <div class="reel-col" id="col-1">
-          <div class="symbol-tile off-line" id="r1-top"></div>
-          <div class="symbol-tile on-line" id="r1-mid"></div>
-          <div class="symbol-tile off-line" id="r1-bot"></div>
-        </div>
-        <div class="reel-separator"></div>
-        <div class="reel-col" id="col-2">
-          <div class="symbol-tile off-line" id="r2-top"></div>
-          <div class="symbol-tile on-line" id="r2-mid"></div>
-          <div class="symbol-tile off-line" id="r2-bot"></div>
+        <div id="payline-glow-top"></div>
+        <div id="payline-glow-bot"></div>
+        <div id="payline-label-left">PAY LINE</div>
+        <div id="payline-label-right">PAY LINE</div>
+      </div>
+      <div id="message-area">
+        <div id="message-inner">
+          <span id="message">Press SPIN to set sail</span>
         </div>
       </div>
-      <div id="payline-glow-top"></div>
-      <div id="payline-glow-bot"></div>
-      <div id="payline-label-left">PAY LINE</div>
-      <div id="payline-label-right">PAY LINE</div>
     </div>
-    <div id="message-area">
-      <div id="message-inner">
-        <span id="message">Press SPIN to set sail</span>
+
+    <div id="controls">
+      <button id="reset-btn" class="ctrl-btn" onclick="resetGame()">↺ RESET</button>
+      <button id="spin-btn" onclick="spin()"><span id="spin-label">SPIN</span><div id="spin-ring"></div></button>
+      <button id="info-btn" class="ctrl-btn" onclick="togglePaytable()">≡ PAYS</button>
+    </div>
+
+    <div id="paytable" class="hidden">
+      <div id="paytable-inner">
+        <h3>PAYTABLE</h3>
+        <div class="pay-grid">
+          <div class="pay-row"><div class="pay-combo"><span class="pi meat">🍖</span><span class="pi meat">🍖</span><span class="pi meat">🍖</span></div><div class="pay-info"><span class="pay-name">Three Meat</span><span class="pay-val">8× · $0.08</span></div></div>
+          <div class="pay-row"><div class="pay-combo"><span class="pi wanted">📜</span><span class="pi wanted">📜</span><span class="pi wanted">📜</span></div><div class="pay-info"><span class="pay-name">Three Wanted</span><span class="pay-val">15× · $0.15</span></div></div>
+          <div class="pay-row"><div class="pay-combo"><span class="pi chest">💰</span><span class="pi chest">💰</span><span class="pi chest">💰</span></div><div class="pay-info"><span class="pay-name">Three Chests</span><span class="pay-val">40× · $0.40</span></div></div>
+          <div class="pay-row"><div class="pay-combo"><span class="pi devil">🍇</span><span class="pi devil">🍇</span><span class="pi devil">🍇</span></div><div class="pay-info"><span class="pay-name">Devil Fruit</span><span class="pay-val">45× · $0.45</span></div></div>
+          <div class="pay-row"><div class="pay-combo"><span class="pi meat">🍖</span><span class="pi meat">🍖</span><span class="pi any">?</span></div><div class="pay-info"><span class="pay-name">Two Meat</span><span class="pay-val">3× · $0.03</span></div></div>
+          <div class="pay-row"><div class="pay-combo"><span class="pi wanted">📜</span><span class="pi wanted">📜</span><span class="pi any">?</span></div><div class="pay-info"><span class="pay-name">Two Wanted</span><span class="pay-val">3× · $0.03</span></div></div>
+          <div class="pay-row bonus-row"><div class="pay-combo"><span class="pi hat">🎩</span><span class="pi hat">🎩</span><span class="pi hat">🎩</span></div><div class="pay-info"><span class="pay-name">Straw Hat ×3</span><span class="pay-val bonus-text">TREASURE HUNT</span></div></div>
+        </div>
+        <div class="pay-footer">RTP 90.14% · Hit freq 13.35% · $0.01/spin</div>
       </div>
     </div>
   </div>
-  <div id="controls">
-    <button id="reset-btn" class="ctrl-btn" onclick="resetGame()">↺ RESET</button>
-    <button id="spin-btn" onclick="spin()"><span id="spin-label">SPIN</span><div id="spin-ring"></div></button>
-    <button id="info-btn" class="ctrl-btn" onclick="togglePaytable()">≡ PAYS</button>
-  </div>
-  <div id="paytable" class="hidden">
-    <div id="paytable-inner">
-      <h3>PAYTABLE</h3>
-      <div class="pay-grid">
-        <div class="pay-row"><div class="pay-combo"><span class="pi meat">🍖</span><span class="pi meat">🍖</span><span class="pi meat">🍖</span></div><div class="pay-info"><span class="pay-name">Three Meat</span><span class="pay-val">8× · $0.08</span></div></div>
-        <div class="pay-row"><div class="pay-combo"><span class="pi wanted">📜</span><span class="pi wanted">📜</span><span class="pi wanted">📜</span></div><div class="pay-info"><span class="pay-name">Three Wanted</span><span class="pay-val">15× · $0.15</span></div></div>
-        <div class="pay-row"><div class="pay-combo"><span class="pi chest">💰</span><span class="pi chest">💰</span><span class="pi chest">💰</span></div><div class="pay-info"><span class="pay-name">Three Chests</span><span class="pay-val">40× · $0.40</span></div></div>
-        <div class="pay-row"><div class="pay-combo"><span class="pi devil">🍇</span><span class="pi devil">��</span><span class="pi devil">🍇</span></div><div class="pay-info"><span class="pay-name">Devil Fruit</span><span class="pay-val">45× · $0.45</span></div></div>
-        <div class="pay-row"><div class="pay-combo"><span class="pi meat">🍖</span><span class="pi meat">🍖</span><span class="pi any">?</span></div><div class="pay-info"><span class="pay-name">Two Meat</span><span class="pay-val">3× · $0.03</span></div></div>
-        <div class="pay-row"><div class="pay-combo"><span class="pi wanted">��</span><span class="pi wanted">📜</span><span class="pi any">?</span></div><div class="pay-info"><span class="pay-name">Two Wanted</span><span class="pay-val">3× · $0.03</span></div></div>
-        <div class="pay-row bonus-row"><div class="pay-combo"><span class="pi hat">🎩</span><span class="pi hat">🎩</span><span class="pi hat">🎩</span></div><div class="pay-info"><span class="pay-name">Straw Hat ×3</span><span class="pay-val bonus-text">TREASURE HUNT</span></div></div>
-      </div>
-      <div class="pay-footer">RTP 90.14% · Hit freq 13.35% · $0.01/spin</div>
-    </div>
-  </div>
+
+  <!-- PROBABILITY SIDEBAR -->
+  <div id="prob-panel"></div>
+
 </div>
+
 <div id="particle-container"></div>
+
 <div id="bonus-overlay" class="hidden">
   <div id="bonus-storm"></div>
   <div id="bonus-modal">
@@ -98,6 +112,7 @@
     <button id="bonus-close" class="hidden" onclick="closeBonus()">⚓ BACK TO SEA</button>
   </div>
 </div>
+
 <script src="game.js"></script>
 </body>
 </html>
