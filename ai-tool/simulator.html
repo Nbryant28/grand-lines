@@ -105,10 +105,14 @@ h1{font-family:'Cinzel Decorative',serif;font-size:clamp(1.2rem,4vw,1.8rem);colo
   </header>
 
   <div id="config">
-    <div class="config-group">
-      <label>Starting Bankroll</label>
-      <input type="number" id="bankroll" value="5.00" min="1" max="100" step="0.50">
-    </div>
+    <div class="config-group" style="grid-column:1/-1">
+        <label>Anthropic API Key</label>
+        <input type="password" id="api-key" placeholder="sk-ant-... (required, never stored)">
+      </div>
+      <div class="config-group">
+        <label>Starting Bankroll</label>
+        <input type="number" id="bankroll" value="5.00" min="1" max="100" step="0.50">
+      </div>
     <div class="config-group">
       <label>Number of Spins</label>
       <input type="number" id="num-spins" value="300" min="50" max="1000" step="50">
@@ -334,7 +338,12 @@ Write Marco's full session narrative followed by the EMOTIONAL ARC ANALYSIS sect
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': document.getElementById('api-key').value.trim(),
+    'anthropic-version': '2023-06-01',
+    'anthropic-dangerous-direct-browser-access': 'true'
+    },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1000,
@@ -412,10 +421,15 @@ async function runSimulation(){
   const numSpins = parseInt(document.getElementById('num-spins').value) || 300;
   const seedVal  = parseInt(document.getElementById('seed').value) || null;
   const detail   = document.getElementById('detail').value;
-
   const btn = document.getElementById('run-btn');
   const status = document.getElementById('status');
   const output = document.getElementById('output');
+  const apiKey = document.getElementById('api-key').value.trim();
+  if(!apiKey || !apiKey.startsWith('sk-ant-')){
+    status.textContent = 'Please enter a valid Anthropic API key to continue.';
+    btn.disabled = false;
+    return;
+  }
 
   btn.disabled = true;
   output.classList.add('hidden');
