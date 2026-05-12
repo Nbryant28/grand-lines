@@ -109,6 +109,12 @@ h1{font-family:'Cinzel Decorative',serif;font-size:clamp(1.4rem,5vw,2.2rem);colo
 @keyframes ringRotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 #spin-label{position:relative;z-index:1}
 
+/* BET SELECTOR */
+#bet-selector{display:flex;justify-content:center;gap:8px;margin-bottom:4px}
+.bet-btn{background:rgba(15,31,56,0.9);color:rgba(201,151,58,0.6);border:1px solid rgba(201,151,58,0.2);border-radius:8px;padding:8px 20px;font-family:'Cinzel',serif;font-size:0.8rem;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all 0.2s ease}
+.bet-btn:hover{color:var(--gold-bright);border-color:rgba(201,151,58,0.5)}
+.bet-btn.bet-active{background:rgba(201,151,58,0.15);color:var(--gold-bright);border-color:var(--gold);box-shadow:0 0 12px rgba(201,151,58,0.2)}
+
 /* PAYTABLE */
 #paytable{background:linear-gradient(160deg,rgba(12,20,36,0.98),rgba(8,14,26,0.99));border:1px solid rgba(201,151,58,0.2);border-radius:12px;overflow:hidden;backdrop-filter:blur(8px)}
 #paytable.hidden{display:none}

@@ -1,7 +1,10 @@
 const REEL=['M','M','M','M','M','M','W','W','W','W','W','C','C','C','C','D','D','S','S','B','B','B'];
 const PAYTABLE={'3M':8,'3W':15,'3C':40,'3D':45,'2M':3,'2W':3};
 const CHEST_POOL=[2,2,2,2,3,3,3,5,5];
-const BET=0.01;
+const DENOM=1.00;
+const BET_LEVELS=[1,3,5];
+let currentBetLevel=0;
+let BET=DENOM*BET_LEVELS[currentBetLevel];
 const META={
   M:{emoji:'🍖',name:'MEAT',cls:'meat'},
   W:{emoji:'📜',name:'WANTED',cls:'wanted'},
@@ -34,7 +37,7 @@ const PROB_DATA=[
   {key:'2M',label:'Meat ×2',prob:0.054095,mult:3,cls:'meat',emoji:'🍖',avgEvery:18},
 ];
 
-let balance=5.00,spinCount=0,isSpinning=false,picksLeft=0,bonusPicks=[],chestVals=[];
+let balance=100.00,spinCount=0,isSpinning=false,picksLeft=0,bonusPicks=[],chestVals=[];
 let winCounts={'3D':0,'3C':0,'3W':0,'3M':0,'2W':0,'2M':0,'BON':0};
 
 // OCEAN CANVAS
@@ -113,6 +116,16 @@ function renderProbRows(){
     `;
   }).join('');
 }
+function setBet(level){
+    if(isSpinning)return;
+    currentBetLevel=level;
+    BET=DENOM*BET_LEVELS[level];
+    document.querySelectorAll('.bet-btn').forEach((b,i)=>{
+      b.classList.toggle('bet-active',i===level);
+    });
+    document.getElementById('bet-display').textContent='$'+BET.toFixed(2);
+    renderProbRows();
+  }
 
 // FLOATING DELTA
 function spawnDelta(amount,isWin){
@@ -294,7 +307,8 @@ function closeBonus(){
 
 // CONTROLS
 function resetGame(){
-  balance=5.00;spinCount=0;isSpinning=false;
+    balance=100.00;
+    BET=DENOM*BET_LEVELS[currentBetLevel];
   winCounts={'3D':0,'3C':0,'3W':0,'3M':0,'2W':0,'2M':0,'BON':0};
   updateHUD();setWinDisplay(0,false);setMessage('New voyage. Press SPIN to set sail.');
   ['r0-top','r0-mid','r0-bot','r1-top','r1-mid','r1-bot','r2-top','r2-mid','r2-bot'].forEach(id=>

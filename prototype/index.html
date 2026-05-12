@@ -22,9 +22,12 @@
     </header>
 
     <div id="stats-bar">
-      <div class="stat"><span class="stat-label">BALANCE</span><span class="stat-value" id="balance">$5.00</span></div>
+      <div class="stat"><span class="stat-label">BALANCE</span><span class="stat-value" id="balance">$100.00</span></div>
       <div class="stat-divider"></div>
-      <div class="stat"><span class="stat-label">BET</span><span class="stat-value">$0.01</span></div>
+      <div class="stat">
+        <span class="stat-label">BET</span>
+        <span class="stat-value" id="bet-display">$1.00</span>
+      </div>
       <div class="stat-divider"></div>
       <div class="stat"><span class="stat-label">WIN</span><span class="stat-value win-stat" id="win-display">$0.00</span></div>
       <div class="stat-divider"></div>
@@ -68,25 +71,30 @@
       </div>
     </div>
 
-    <div id="controls">
-      <button id="reset-btn" class="ctrl-btn" onclick="resetGame()">↺ RESET</button>
-      <button id="spin-btn" onclick="spin()"><span id="spin-label">SPIN</span><div id="spin-ring"></div></button>
-      <button id="info-btn" class="ctrl-btn" onclick="togglePaytable()">≡ PAYS</button>
-    </div>
+    <div id="bet-selector">
+        <button class="bet-btn bet-active" onclick="setBet(0)">$1</button>
+        <button class="bet-btn" onclick="setBet(1)">$3</button>
+        <button class="bet-btn" onclick="setBet(2)">$5</button>
+      </div>
+      <div id="controls">
+        <button id="reset-btn" class="ctrl-btn" onclick="resetGame()">↺ RESET</button>
+        <button id="spin-btn" onclick="spin()"><span id="spin-label">SPIN</span><div id="spin-ring"></div></button>
+        <button id="info-btn" class="ctrl-btn" onclick="togglePaytable()">≡ PAYS</button>
+      </div>
 
     <div id="paytable" class="hidden">
       <div id="paytable-inner">
         <h3>PAYTABLE</h3>
         <div class="pay-grid">
-          <div class="pay-row"><div class="pay-combo"><span class="pi meat">🍖</span><span class="pi meat">🍖</span><span class="pi meat">🍖</span></div><div class="pay-info"><span class="pay-name">Three Meat</span><span class="pay-val">8× · $0.08</span></div></div>
-          <div class="pay-row"><div class="pay-combo"><span class="pi wanted">📜</span><span class="pi wanted">📜</span><span class="pi wanted">📜</span></div><div class="pay-info"><span class="pay-name">Three Wanted</span><span class="pay-val">15× · $0.15</span></div></div>
-          <div class="pay-row"><div class="pay-combo"><span class="pi chest">💰</span><span class="pi chest">💰</span><span class="pi chest">💰</span></div><div class="pay-info"><span class="pay-name">Three Chests</span><span class="pay-val">40× · $0.40</span></div></div>
-          <div class="pay-row"><div class="pay-combo"><span class="pi devil">🍇</span><span class="pi devil">🍇</span><span class="pi devil">🍇</span></div><div class="pay-info"><span class="pay-name">Devil Fruit</span><span class="pay-val">45× · $0.45</span></div></div>
-          <div class="pay-row"><div class="pay-combo"><span class="pi meat">🍖</span><span class="pi meat">🍖</span><span class="pi any">?</span></div><div class="pay-info"><span class="pay-name">Two Meat</span><span class="pay-val">3× · $0.03</span></div></div>
-          <div class="pay-row"><div class="pay-combo"><span class="pi wanted">📜</span><span class="pi wanted">📜</span><span class="pi any">?</span></div><div class="pay-info"><span class="pay-name">Two Wanted</span><span class="pay-val">3× · $0.03</span></div></div>
+          <div class="pay-row"><div class="pay-combo"><span class="pi meat">🍖</span><span class="pi meat">🍖</span><span class="pi meat">🍖</span></div><div class="pay-info"><span class="pay-name">Three Meat</span><span class="pay-val">8× · $8.00</span></div></div>
+          <div class="pay-row"><div class="pay-combo"><span class="pi wanted">📜</span><span class="pi wanted">📜</span><span class="pi wanted">📜</span></div><div class="pay-info"><span class="pay-name">Three Wanted</span><span class="pay-val">15× · $15.00</span></div></div>
+          <div class="pay-row"><div class="pay-combo"><span class="pi chest">💰</span><span class="pi chest">💰</span><span class="pi chest">💰</span></div><div class="pay-info"><span class="pay-name">Three Chests</span><span class="pay-val">40× · $40.00</span></div></div>
+          <div class="pay-row"><div class="pay-combo"><span class="pi devil">🍇</span><span class="pi devil">🍇</span><span class="pi devil">🍇</span></div><div class="pay-info"><span class="pay-name">Devil Fruit</span><span class="pay-val">45× · $45.00</span></div></div>
+          <div class="pay-row"><div class="pay-combo"><span class="pi meat">🍖</span><span class="pi meat">🍖</span><span class="pi any">?</span></div><div class="pay-info"><span class="pay-name">Two Meat</span><span class="pay-val">3× · $3.00</span></div></div>
+          <div class="pay-row"><div class="pay-combo"><span class="pi wanted">📜</span><span class="pi wanted">📜</span><span class="pi any">?</span></div><div class="pay-info"><span class="pay-name">Two Wanted</span><span class="pay-val">3× · $3.00</span></div></div>
           <div class="pay-row bonus-row"><div class="pay-combo"><span class="pi hat">🎩</span><span class="pi hat">🎩</span><span class="pi hat">🎩</span></div><div class="pay-info"><span class="pay-name">Straw Hat ×3</span><span class="pay-val bonus-text">TREASURE HUNT</span></div></div>
         </div>
-        <div class="pay-footer">RTP 90.14% · Hit freq 13.35% · $0.01/spin</div>
+        <div class="pay-footer">RTP 90.14% · Hit freq 13.35% · $1/$3/$5 per spin</div>
       </div>
     </div>
   </div>
