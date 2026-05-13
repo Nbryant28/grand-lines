@@ -80,17 +80,109 @@ h1{font-family:'Cinzel Decorative',serif;font-size:clamp(1.4rem,5vw,2.2rem);colo
 .bet-btn{background:rgba(15,31,56,0.9);color:rgba(201,151,58,0.6);border:1px solid rgba(201,151,58,0.2);border-radius:8px;padding:8px 20px;font-family:'Cinzel',serif;font-size:0.8rem;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all 0.2s ease}
 .bet-btn:hover{color:var(--gold-bright);border-color:rgba(201,151,58,0.5)}
 .bet-btn.bet-active{background:rgba(201,151,58,0.15);color:var(--gold-bright);border-color:var(--gold);box-shadow:0 0 12px rgba(201,151,58,0.2)}
-#controls{display:flex;align-items:center;justify-content:center;gap:12px}
+#controls{display:flex;align-items:center;justify-content:center;gap:16px}
 .ctrl-btn{background:rgba(15,31,56,0.9);color:rgba(201,151,58,0.7);border:1px solid rgba(201,151,58,0.2);border-radius:8px;padding:12px 18px;font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:2px;cursor:pointer;transition:all 0.2s ease;backdrop-filter:blur(4px)}
 .ctrl-btn:hover{color:var(--gold-bright);border-color:rgba(201,151,58,0.5);background:rgba(201,151,58,0.08)}
-#spin-btn{position:relative;background:linear-gradient(135deg,#C9973A,#A07828,#C9973A);color:var(--navy-deep);border:none;border-radius:50%;width:100px;height:100px;font-family:'Cinzel',serif;font-size:1rem;font-weight:700;letter-spacing:3px;cursor:pointer;transition:transform 0.15s ease,box-shadow 0.15s ease;box-shadow:0 4px 20px rgba(201,151,58,0.4),0 0 40px rgba(201,151,58,0.1),inset 0 1px 0 rgba(255,255,255,0.2);animation:spinBtnPulse 3s ease-in-out infinite;overflow:hidden}
-@keyframes spinBtnPulse{0%,100%{box-shadow:0 4px 20px rgba(201,151,58,0.4),0 0 40px rgba(201,151,58,0.1),inset 0 1px 0 rgba(255,255,255,0.2)}50%{box-shadow:0 4px 28px rgba(201,151,58,0.6),0 0 60px rgba(201,151,58,0.2),inset 0 1px 0 rgba(255,255,255,0.2)}}
-#spin-btn:hover:not(:disabled){transform:scale(1.06);box-shadow:0 6px 30px rgba(201,151,58,0.6),0 0 60px rgba(201,151,58,0.2)}
-#spin-btn:active:not(:disabled){transform:scale(0.96)}
-#spin-btn:disabled{background:linear-gradient(135deg,#3A3028,#2A2018);color:rgba(201,151,58,0.3);cursor:not-allowed;box-shadow:none;animation:none}
-#spin-ring{position:absolute;inset:-3px;border-radius:50%;border:2px solid rgba(201,151,58,0.3);animation:ringRotate 8s linear infinite;pointer-events:none}
-@keyframes ringRotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-#spin-label{position:relative;z-index:1}
+
+/* ── SPIN BUTTON ── */
+#spin-btn{
+  position:relative;
+  background:none;
+  border:none;
+  width:130px;height:130px;
+  border-radius:50%;
+  cursor:pointer;
+  padding:0;
+  flex-shrink:0;
+  outline:none;
+}
+#spin-core{
+  position:absolute;inset:12px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, #F0C060 0%, #C9973A 40%, #7A4A10 100%);
+  display:flex;align-items:center;justify-content:center;
+  z-index:4;
+  box-shadow:
+    0 4px 16px rgba(0,0,0,0.6),
+    inset 0 2px 4px rgba(255,255,255,0.3),
+    inset 0 -2px 4px rgba(0,0,0,0.4);
+  transition:transform 0.1s ease,box-shadow 0.1s ease;
+}
+#spin-btn:hover:not(:disabled) #spin-core{
+  transform:scale(1.04);
+  box-shadow:0 6px 24px rgba(0,0,0,0.6),inset 0 2px 4px rgba(255,255,255,0.35),inset 0 -2px 4px rgba(0,0,0,0.4);
+}
+#spin-btn:active:not(:disabled) #spin-core{transform:scale(0.96);}
+#spin-btn:disabled{cursor:not-allowed;opacity:0.5}
+#spin-label{
+  font-family:'Cinzel',serif;font-size:1rem;font-weight:900;
+  letter-spacing:4px;color:var(--navy-deep);
+  text-shadow:0 1px 2px rgba(255,255,255,0.3);
+  position:relative;z-index:1;
+  user-select:none;
+}
+
+/* Outer rings */
+#spin-ring-1,#spin-ring-2,#spin-ring-3{
+  position:absolute;border-radius:50%;pointer-events:none;
+}
+#spin-ring-1{
+  inset:6px;
+  border:2px solid rgba(201,151,58,0.5);
+  animation:ringRotate1 6s linear infinite;
+  box-shadow:0 0 12px rgba(201,151,58,0.2);
+}
+#spin-ring-2{
+  inset:2px;
+  border:1px solid rgba(201,151,58,0.25);
+  animation:ringRotate2 10s linear infinite reverse;
+}
+#spin-ring-3{
+  inset:-4px;
+  border:2px solid transparent;
+  border-top-color:rgba(201,151,58,0.6);
+  border-right-color:rgba(201,151,58,0.3);
+  animation:ringRotate1 3s linear infinite;
+}
+@keyframes ringRotate1{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes ringRotate2{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* Glow */
+#spin-glow{
+  position:absolute;inset:-16px;border-radius:50%;
+  background:radial-gradient(circle,rgba(201,151,58,0.25) 0%,transparent 70%);
+  animation:glowPulse 2s ease-in-out infinite;
+  pointer-events:none;z-index:0;
+}
+@keyframes glowPulse{
+  0%,100%{transform:scale(1);opacity:0.6}
+  50%{transform:scale(1.15);opacity:1}
+}
+
+/* Lightning bolt idle particles */
+.lightning-bolt{
+  position:fixed;
+  height:2px;
+  background:linear-gradient(90deg,rgba(240,192,96,0.9),rgba(255,240,150,1),transparent);
+  border-radius:1px;
+  pointer-events:none;
+  z-index:51;
+  animation:boltFly 0.35s ease-out forwards;
+  box-shadow:0 0 4px rgba(240,192,96,0.8),0 0 8px rgba(240,192,96,0.4);
+}
+@keyframes boltFly{
+  0%{opacity:1;transform:rotate(var(--angle,0rad)) scaleX(0);transform-origin:left center}
+  40%{opacity:1;transform:rotate(var(--angle,0rad)) scaleX(1);transform-origin:left center}
+  100%{opacity:0;transform:translate(var(--tx,0px),var(--ty,0px)) scaleX(0.3);transform-origin:left center}
+}
+
+/* Spin active state */
+#spin-btn.spinning-active #spin-core{
+  background:radial-gradient(circle at 35% 35%,#A07828 0%,#704A08 40%,#402808 100%);
+}
+#spin-btn.spinning-active #spin-ring-3{animation-duration:0.5s;}
+
+/* PAYTABLE */
 #paytable{background:linear-gradient(160deg,rgba(12,20,36,0.98),rgba(8,14,26,0.99));border:1px solid rgba(201,151,58,0.2);border-radius:12px;overflow:hidden;backdrop-filter:blur(8px)}
 #paytable.hidden{display:none}
 #paytable-inner{padding:20px}
@@ -107,6 +199,8 @@ h1{font-family:'Cinzel Decorative',serif;font-size:clamp(1.4rem,5vw,2.2rem);colo
 .pay-val{font-family:'Cinzel',serif;font-size:0.8rem;font-weight:700;color:var(--gold-bright)}
 .bonus-text{color:var(--teal-bright);text-shadow:0 0 8px rgba(42,187,168,0.5)}
 .pay-footer{text-align:center;margin-top:14px;padding-top:10px;border-top:1px solid rgba(201,151,58,0.1);font-family:'Crimson Text',serif;font-style:italic;font-size:0.8rem;color:var(--gray)}
+
+/* PROBABILITY PANEL */
 #prob-panel{background:linear-gradient(160deg,rgba(10,18,32,0.97),rgba(6,12,22,0.98));border:1px solid rgba(201,151,58,0.18);border-radius:14px;padding:20px 16px;backdrop-filter:blur(8px);box-shadow:0 8px 32px rgba(0,0,0,0.5),inset 0 1px 0 rgba(201,151,58,0.06)}
 .prob-header{text-align:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(201,151,58,0.15)}
 .prob-title{font-family:'Cinzel',serif;font-size:0.75rem;letter-spacing:4px;color:var(--gold);display:block}
@@ -132,9 +226,43 @@ h1{font-family:'Cinzel Decorative',serif;font-size:clamp(1.4rem,5vw,2.2rem);colo
 .prob-counts strong{color:var(--white)}
 .prob-delta{margin-left:6px;font-size:0.7rem;font-family:'Cinzel',serif}
 .delta-ahead{color:#6FFF90}.delta-behind{color:#FF8888}
+
+/* PARTICLES & FX */
 #particle-container{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden}
 .particle{position:absolute;border-radius:50%;pointer-events:none;animation:particleFly var(--dur,1s) ease-out forwards}
 @keyframes particleFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx,0px),var(--ty,-200px)) scale(0);opacity:0}}
+#screen-flash{position:fixed;inset:0;pointer-events:none;z-index:200;opacity:0}
+#screen-flash.flash-active{animation:flashPop 0.5s ease forwards}
+@keyframes flashPop{0%{opacity:1}100%{opacity:0}}
+
+/* SCREEN SHAKE */
+@keyframes screenShake{0%,100%{transform:translate(0,0)}15%{transform:translate(-4px,2px)}30%{transform:translate(4px,-2px)}45%{transform:translate(-3px,3px)}60%{transform:translate(3px,-1px)}75%{transform:translate(-2px,2px)}}
+.screen-shake{animation:screenShake 0.6s cubic-bezier(0.36,0.07,0.19,0.97) forwards}
+
+/* WIN TIER GLOWS */
+.symbol-tile.win-glow-tier1.meat{box-shadow:0 0 16px rgba(255,80,80,0.4)}
+.symbol-tile.win-glow-tier1.wanted{box-shadow:0 0 16px rgba(255,200,60,0.4)}
+.symbol-tile.win-glow-tier2.meat{box-shadow:0 0 28px rgba(255,80,80,0.6),0 0 50px rgba(255,80,80,0.2)}
+.symbol-tile.win-glow-tier2.wanted{box-shadow:0 0 28px rgba(255,200,60,0.6),0 0 50px rgba(255,200,60,0.2)}
+.symbol-tile.win-glow-tier3.chest{box-shadow:0 0 40px rgba(255,160,40,0.8),0 0 80px rgba(255,160,40,0.4)}
+.symbol-tile.win-glow-tier3.devil{box-shadow:0 0 40px rgba(160,60,255,0.8),0 0 80px rgba(160,60,255,0.4)}
+.symbol-tile.win-glow-tier4.hat{box-shadow:0 0 50px rgba(42,187,168,0.9),0 0 100px rgba(42,187,168,0.5)}
+
+/* WIN BANNER */
+.win-banner{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:100;animation:bannerPop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards}
+.win-banner.wb-fade{animation:bannerFade 0.6s ease forwards}
+@keyframes bannerPop{0%{transform:translate(-50%,-50%) scale(0.5);opacity:0}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
+@keyframes bannerFade{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-70%) scale(0.9)}}
+.wb-label{font-family:'Cinzel',serif;letter-spacing:4px;font-size:0.8rem;margin-bottom:4px}
+.wb-amount{font-family:'Cinzel Decorative',serif;font-weight:700;text-shadow:0 0 20px currentColor}
+.win-banner-tier2 .wb-label{color:var(--gold);font-size:0.9rem}
+.win-banner-tier2 .wb-amount{font-size:2rem;color:var(--gold-bright)}
+.win-banner-tier3 .wb-label{color:#E080FF;font-size:1.1rem;letter-spacing:6px}
+.win-banner-tier3 .wb-amount{font-size:3rem;color:#E080FF;text-shadow:0 0 30px rgba(160,60,255,0.8)}
+.win-banner-tier4 .wb-label{color:var(--teal-bright);font-size:1.2rem;letter-spacing:6px}
+.win-banner-tier4 .wb-amount{font-size:3.5rem;color:var(--teal-bright);text-shadow:0 0 40px rgba(42,187,168,0.9)}
+
+/* BONUS */
 #bonus-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:300}
 #bonus-overlay.hidden{display:none}
 #bonus-storm{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(10,74,106,0.7) 0%,rgba(6,13,26,0.95) 70%);animation:stormPulse 2s ease-in-out infinite}
@@ -163,65 +291,24 @@ h1{font-family:'Cinzel Decorative',serif;font-size:clamp(1.4rem,5vw,2.2rem);colo
 #bonus-close:hover{transform:scale(1.03)}
 #bonus-close.hidden{display:none}
 
-/* SCREEN FLASH */
-#screen-flash{position:fixed;inset:0;pointer-events:none;z-index:200;opacity:0}
-#screen-flash.flash-active{animation:flashPop 0.5s ease forwards}
-@keyframes flashPop{0%{opacity:1}100%{opacity:0}}
-
-/* SCREEN SHAKE */
-@keyframes screenShake{
-  0%,100%{transform:translate(0,0) rotate(0)}
-  15%{transform:translate(-4px,2px) rotate(-0.3deg)}
-  30%{transform:translate(4px,-2px) rotate(0.3deg)}
-  45%{transform:translate(-3px,3px) rotate(-0.2deg)}
-  60%{transform:translate(3px,-1px) rotate(0.2deg)}
-  75%{transform:translate(-2px,2px) rotate(-0.1deg)}
-}
-.screen-shake{animation:screenShake 0.6s cubic-bezier(0.36,0.07,0.19,0.97) forwards}
-
-/* WIN TIER GLOWS */
-.symbol-tile.win-glow-tier1.meat{box-shadow:0 0 16px rgba(255,80,80,0.4)}
-.symbol-tile.win-glow-tier1.wanted{box-shadow:0 0 16px rgba(255,200,60,0.4)}
-.symbol-tile.win-glow-tier2.meat{box-shadow:0 0 28px rgba(255,80,80,0.6),0 0 50px rgba(255,80,80,0.2)}
-.symbol-tile.win-glow-tier2.wanted{box-shadow:0 0 28px rgba(255,200,60,0.6),0 0 50px rgba(255,200,60,0.2)}
-.symbol-tile.win-glow-tier3.chest{box-shadow:0 0 40px rgba(255,160,40,0.8),0 0 80px rgba(255,160,40,0.4)}
-.symbol-tile.win-glow-tier3.devil{box-shadow:0 0 40px rgba(160,60,255,0.8),0 0 80px rgba(160,60,255,0.4)}
-.symbol-tile.win-glow-tier4.hat{box-shadow:0 0 50px rgba(42,187,168,0.9),0 0 100px rgba(42,187,168,0.5)}
-
-/* WIN BANNER */
-.win-banner{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:100;animation:bannerPop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards}
-.win-banner.wb-fade{animation:bannerFade 0.6s ease forwards}
-@keyframes bannerPop{0%{transform:translate(-50%,-50%) scale(0.5);opacity:0}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
-@keyframes bannerFade{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-70%) scale(0.9)}}
-.wb-label{font-family:'Cinzel',serif;letter-spacing:4px;font-size:0.8rem;margin-bottom:4px}
-.wb-amount{font-family:'Cinzel Decorative',serif;font-weight:700;text-shadow:0 0 20px currentColor}
-.win-banner-tier2 .wb-label{color:var(--gold);font-size:0.9rem}
-.win-banner-tier2 .wb-amount{font-size:2rem;color:var(--gold-bright)}
-.win-banner-tier3 .wb-label{color:#E080FF;font-size:1.1rem;letter-spacing:6px}
-.win-banner-tier3 .wb-amount{font-size:3rem;color:#E080FF;text-shadow:0 0 30px rgba(160,60,255,0.8)}
-.win-banner-tier4 .wb-label{color:var(--teal-bright);font-size:1.2rem;letter-spacing:6px}
-.win-banner-tier4 .wb-amount{font-size:3.5rem;color:var(--teal-bright);text-shadow:0 0 40px rgba(42,187,168,0.9)}
-
-/* ONBOARDING HIGHLIGHT */
-.ob-highlight{outline:3px solid var(--gold) !important;outline-offset:6px;border-radius:12px;box-shadow:0 0 0 6px rgba(201,151,58,0.15),0 0 30px rgba(201,151,58,0.3) !important;transition:outline 0.3s ease,box-shadow 0.3s ease;position:relative;z-index:350}
-
-/* ONBOARDING OVERLAY */
-#onboarding-overlay{position:fixed;inset:0;background:rgba(6,13,26,0.75);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:400}
+/* ONBOARDING */
+#onboarding-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:400;pointer-events:all}
 #onboarding-overlay.hidden{display:none}
-#onboarding-modal{background:linear-gradient(160deg,rgba(10,30,55,0.99),rgba(6,14,28,0.99));border:1px solid rgba(201,151,58,0.4);border-radius:20px;padding:32px 28px 24px;max-width:420px;width:92%;display:flex;flex-direction:column;gap:16px;box-shadow:0 0 60px rgba(201,151,58,0.15),0 20px 60px rgba(0,0,0,0.7);position:relative}
-#ob-skip{position:absolute;top:14px;right:16px;background:transparent;border:none;color:rgba(201,151,58,0.4);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;cursor:pointer;transition:color 0.2s ease}
+#spotlight-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#onboarding-modal{position:fixed;background:linear-gradient(160deg,rgba(10,30,55,0.99),rgba(6,14,28,0.99));border:1px solid rgba(201,151,58,0.4);border-radius:20px;padding:28px 24px 20px;width:340px;max-width:92vw;display:flex;flex-direction:column;gap:14px;box-shadow:0 0 60px rgba(201,151,58,0.2),0 20px 60px rgba(0,0,0,0.8);z-index:401}
+#ob-skip{position:absolute;top:12px;right:14px;background:transparent;border:none;color:rgba(201,151,58,0.4);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;cursor:pointer;transition:color 0.2s ease}
 #ob-skip:hover{color:var(--gold)}
 #ob-body{text-align:center}
-#ob-icon{font-size:2.5rem;color:var(--gold);animation:anchorFloat 3s ease-in-out infinite;display:inline-block;margin-bottom:8px}
-#ob-body h2{font-family:'Cinzel Decorative',serif;font-size:1.3rem;color:var(--gold-bright);letter-spacing:3px;margin-bottom:10px;text-shadow:0 0 16px rgba(240,192,96,0.4)}
-#ob-body p{font-family:'Crimson Text',serif;font-style:italic;font-size:1rem;color:rgba(240,220,190,0.85);line-height:1.6}
+#ob-icon{font-size:2rem;color:var(--gold);animation:anchorFloat 3s ease-in-out infinite;display:inline-block;margin-bottom:6px}
+#ob-body h2{font-family:'Cinzel Decorative',serif;font-size:1.1rem;color:var(--gold-bright);letter-spacing:3px;margin-bottom:8px;text-shadow:0 0 16px rgba(240,192,96,0.4)}
+#ob-body p{font-family:'Crimson Text',serif;font-style:italic;font-size:0.95rem;color:rgba(240,220,190,0.85);line-height:1.6}
 #ob-dots{display:flex;justify-content:center;gap:8px}
-.ob-dot{width:8px;height:8px;border-radius:50%;background:rgba(201,151,58,0.2);transition:all 0.3s ease}
-.ob-dot-active{background:var(--gold);transform:scale(1.2)}
+.ob-dot{width:7px;height:7px;border-radius:50%;background:rgba(201,151,58,0.2);transition:all 0.3s ease}
+.ob-dot-active{background:var(--gold);transform:scale(1.3)}
 #ob-nav{display:flex;align-items:center;justify-content:space-between}
-#ob-prev,#ob-next{background:transparent;border:1px solid rgba(201,151,58,0.3);border-radius:8px;color:var(--gold);font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:2px;padding:10px 16px;cursor:pointer;transition:all 0.2s ease}
+#ob-prev,#ob-next{background:transparent;border:1px solid rgba(201,151,58,0.3);border-radius:8px;color:var(--gold);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;padding:9px 14px;cursor:pointer;transition:all 0.2s ease}
 #ob-prev:hover,#ob-next:hover{background:rgba(201,151,58,0.1);border-color:var(--gold)}
 #ob-next{background:rgba(201,151,58,0.12);border-color:var(--gold)}
-#ob-step{font-family:'Cinzel',serif;font-size:0.65rem;color:var(--gray);letter-spacing:2px}
+#ob-step{font-family:'Cinzel',serif;font-size:0.6rem;color:var(--gray);letter-spacing:2px}
 
-@media(max-width:420px){h1{font-size:1.3rem;letter-spacing:3px}.symbol-tile{height:72px}.symbol-tile .sym-emoji{font-size:1.5rem}#spin-btn{width:84px;height:84px;font-size:0.85rem}}
+@media(max-width:420px){h1{font-size:1.3rem;letter-spacing:3px}.symbol-tile{height:72px}.symbol-tile .sym-emoji{font-size:1.5rem}#spin-btn{width:110px;height:110px}#spin-core{inset:10px}}

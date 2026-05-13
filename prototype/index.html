@@ -76,7 +76,15 @@
 
     <div id="controls">
       <button id="reset-btn" class="ctrl-btn" onclick="resetGame()">↺ RESET</button>
-      <button id="spin-btn" onclick="spin()"><span id="spin-label">SPIN</span><div id="spin-ring"></div></button>
+      <button id="spin-btn" onclick="spin()">
+        <div id="spin-core">
+          <span id="spin-label">SPIN</span>
+        </div>
+        <div id="spin-ring-1"></div>
+        <div id="spin-ring-2"></div>
+        <div id="spin-ring-3"></div>
+        <div id="spin-glow"></div>
+      </button>
       <button id="info-btn" class="ctrl-btn" onclick="togglePaytable()">≡ PAYS</button>
     </div>
 
@@ -102,8 +110,9 @@
 
 <div id="particle-container"></div>
 
-<!-- ONBOARDING OVERLAY -->
-<div id="onboarding-overlay">
+<!-- ONBOARDING -->
+<div id="onboarding-overlay" class="hidden">
+  <canvas id="spotlight-canvas"></canvas>
   <div id="onboarding-modal">
     <button id="ob-skip" onclick="closeOnboarding()">SKIP ×</button>
     <div id="ob-body">
@@ -120,7 +129,7 @@
   </div>
 </div>
 
-<!-- BONUS OVERLAY -->
+<!-- BONUS -->
 <div id="bonus-overlay" class="hidden">
   <div id="bonus-storm"></div>
   <div id="bonus-modal">

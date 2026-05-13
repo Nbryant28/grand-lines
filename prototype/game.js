@@ -41,7 +41,6 @@ const PROB_DATA=[
   {key:'2M',label:'Meat ×2',prob:0.054095,mult:3,cls:'meat',emoji:'🍖',avgEvery:18},
 ];
 
-// Win tier definitions
 const WIN_TIERS={
   tier1:{keys:['2M','2W'],particles:6,shake:false,banner:false,flashIntensity:0.05},
   tier2:{keys:['3M','3W'],particles:15,shake:false,banner:true,flashIntensity:0.12},
@@ -51,62 +50,73 @@ const WIN_TIERS={
 
 function getWinTier(key){
   for(const[tier,data] of Object.entries(WIN_TIERS)){
-    if(data.keys.includes(key)) return {tier,data};
+    if(data.keys.includes(key))return{tier,data};
   }
   return null;
 }
 
 let balance=100.00,spinCount=0,isSpinning=false,picksLeft=0,bonusPicks=[],chestVals=[];
 let winCounts={'3D':0,'3C':0,'3W':0,'3M':0,'2W':0,'2M':0,'BON':0};
+let lightningInterval=null;
 
-// ONBOARDING
+// ── LIGHTNING BOLT IDLE ──────────────────────────────────────────────────────
+function spawnLightningBolt(){
+  const btn=document.getElementById('spin-btn');
+  if(!btn||isSpinning)return;
+  const rect=btn.getBoundingClientRect();
+  const cx=rect.left+rect.width/2;
+  const cy=rect.top+rect.height/2;
+  const count=3+Math.floor(Math.random()*3);
+  for(let i=0;i<count;i++){
+    setTimeout(()=>{
+      const bolt=document.createElement('div');
+      bolt.className='lightning-bolt';
+      const angle=Math.random()*Math.PI*2;
+      const dist=60+Math.random()*40;
+      const tx=Math.cos(angle)*dist;
+      const ty=Math.sin(angle)*dist;
+      const size=8+Math.random()*12;
+      bolt.style.cssText=`
+        left:${cx}px;top:${cy}px;
+        width:${size}px;height:2px;
+        --tx:${tx}px;--ty:${ty}px;
+        transform:rotate(${angle}rad);
+        transform-origin:left center;
+      `;
+      document.getElementById('particle-container').appendChild(bolt);
+      setTimeout(()=>bolt.remove(),400);
+    },i*60);
+  }
+}
+
+function startLightningIdle(){
+  if(lightningInterval)clearInterval(lightningInterval);
+  lightningInterval=setInterval(()=>{
+    if(!isSpinning)spawnLightningBolt();
+  },2200);
+}
+
+function stopLightningIdle(){
+  if(lightningInterval){clearInterval(lightningInterval);lightningInterval=null;}
+}
+
+// ── ONBOARDING ───────────────────────────────────────────────────────────────
 const ONBOARDING_STEPS=[
-  {
-    title:'The Grand Line Awaits',
-    text:'Welcome to Grand Line Reels. This is a One Piece themed slot machine. Let us show you how to play.',
-    highlight:null,
-    position:'center'
-  },
-  {
-    title:'The Reels',
-    text:'These are your three reels. Each one spins independently and lands on a random symbol. Every spin is a new chance.',
-    highlight:'reel-frame',
-    position:'right'
-  },
-  {
-    title:'The Payline',
-    text:'Only the middle row pays. The gold line marks it. Match symbols across all three reels on this line to win.',
-    highlight:'reels-wrapper',
-    position:'right'
-  },
-  {
-    title:'Symbol Values',
-    text:'Meat and Wanted Posters are common. Treasure Chests and Devil Fruits are rare and pay more. The Straw Hat is special.',
-    highlight:'paytable',
-    position:'top'
-  },
-  {
-    title:'The Straw Hat',
-    text:'Three Straw Hats appearing anywhere on the grid triggers the Treasure Hunt bonus. This is what you are chasing.',
-    highlight:'prob-panel',
-    position:'left'
-  },
-  {
-    title:'Set Your Bet',
-    text:'Choose $1, $3, or $5 per spin. Higher bets mean bigger wins and faster sessions. You start with $100. Good luck.',
-    highlight:'bet-selector',
-    position:'top'
-  },
+  {title:'The Grand Line Awaits',text:'Welcome to Grand Line Reels. A One Piece themed slot machine. Let us show you how to play.',highlight:null},
+  {title:'The Reels',text:'These are your three reels. Each spins independently and lands on a random symbol. Every spin is a new chance.',highlight:'reel-frame'},
+  {title:'The Payline',text:'Only the middle row pays. The gold line marks it. Match symbols across all three reels on this line to win.',highlight:'reels-wrapper'},
+  {title:'Symbol Values',text:'Meat and Wanted Posters are common. Treasure Chests and Devil Fruits are rare and pay more. The Straw Hat is special.',highlight:'paytable'},
+  {title:'The Odds Viewer',text:'Three Straw Hats anywhere triggers the Treasure Hunt bonus. The odds viewer tracks your live session stats.',highlight:'prob-panel'},
+  {title:'Set Your Bet',text:'Choose $1, $3, or $5 per spin. Higher bets mean bigger wins. You start with $100. Good luck, pirate.',highlight:'bet-selector'},
 ];
 
 let onboardingStep=0;
-let onboardingActive=false;
+let spotlightRect=null;
 
 function startOnboarding(){
   onboardingStep=0;
-  onboardingActive=true;
-  renderOnboardingStep();
   document.getElementById('onboarding-overlay').classList.remove('hidden');
+  renderOnboardingStep();
 }
 
 function renderOnboardingStep(){
@@ -119,28 +129,122 @@ function renderOnboardingStep(){
   document.getElementById('ob-prev').style.opacity=onboardingStep===0?'0.3':'1';
   document.getElementById('ob-prev').disabled=onboardingStep===0;
   document.getElementById('ob-next').textContent=
-    onboardingStep===total-1?'START SAILING':'NEXT →';
+    onboardingStep===total-1?'⚓ START SAILING':'NEXT →';
 
-  // Remove previous highlights
-  document.querySelectorAll('.ob-highlight').forEach(el=>el.classList.remove('ob-highlight'));
-
-  // Add new highlight
-  if(step.highlight){
-    const el=document.getElementById(step.highlight);
-    if(el) el.classList.add('ob-highlight');
-  }
-
-  // Update progress dots
   const dots=document.getElementById('ob-dots');
   dots.innerHTML=ONBOARDING_STEPS.map((_,i)=>
     `<div class="ob-dot ${i===onboardingStep?'ob-dot-active':''}"></div>`
   ).join('');
+
+  // Update spotlight
+  updateSpotlight(step.highlight);
+}
+
+function updateSpotlight(highlightId){
+  const canvas=document.getElementById('spotlight-canvas');
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight;
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  if(!highlightId){
+    // No highlight: full dark overlay
+    ctx.fillStyle='rgba(6,13,26,0.82)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    return;
+  }
+
+  const el=document.getElementById(highlightId);
+  if(!el){
+    ctx.fillStyle='rgba(6,13,26,0.82)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    return;
+  }
+
+  const rect=el.getBoundingClientRect();
+  const pad=20;
+  const x=rect.left-pad;
+  const y=rect.top-pad;
+  const w=rect.width+pad*2;
+  const h=rect.height+pad*2;
+  const r=16;
+
+  // Dark overlay
+  ctx.fillStyle='rgba(6,13,26,0.88)';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // Cut out spotlight hole using composite operation
+  ctx.globalCompositeOperation='destination-out';
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  ctx.fill();
+
+  // Reset composite and draw gold border glow around spotlight
+  ctx.globalCompositeOperation='source-over';
+  ctx.strokeStyle='rgba(201,151,58,0.8)';
+  ctx.lineWidth=2;
+  ctx.shadowColor='rgba(201,151,58,0.6)';
+  ctx.shadowBlur=16;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  ctx.stroke();
+
+  // Position the modal below or beside the spotlight
+  positionModal(rect,pad);
+}
+
+function positionModal(targetRect,pad){
+  const modal=document.getElementById('onboarding-modal');
+  const modalH=modal.offsetHeight||200;
+  const modalW=modal.offsetWidth||400;
+  const vp={w:window.innerWidth,h:window.innerHeight};
+
+  // Try below first
+  let top=targetRect.bottom+pad+20;
+  let left=targetRect.left+(targetRect.width/2)-(modalW/2);
+
+  // If below goes off screen, try above
+  if(top+modalH>vp.h-20){
+    top=targetRect.top-pad-modalH-20;
+  }
+
+  // If above goes off screen, center vertically
+  if(top<20){
+    top=vp.h/2-modalH/2;
+  }
+
+  // Clamp left
+  left=Math.max(16,Math.min(left,vp.w-modalW-16));
+
+  modal.style.position='fixed';
+  modal.style.top=top+'px';
+  modal.style.left=left+'px';
+  modal.style.transform='none';
 }
 
 function nextOnboardingStep(){
   if(onboardingStep>=ONBOARDING_STEPS.length-1){
     closeOnboarding();
-  } else {
+  }else{
     onboardingStep++;
     renderOnboardingStep();
   }
@@ -154,15 +258,12 @@ function prevOnboardingStep(){
 }
 
 function closeOnboarding(){
-  onboardingActive=false;
   document.getElementById('onboarding-overlay').classList.add('hidden');
-  document.querySelectorAll('.ob-highlight').forEach(el=>el.classList.remove('ob-highlight'));
-  // Show paytable briefly after onboarding
   document.getElementById('paytable').classList.remove('hidden');
   setTimeout(()=>document.getElementById('paytable').classList.add('hidden'),3000);
 }
 
-// OCEAN CANVAS
+// ── OCEAN CANVAS ─────────────────────────────────────────────────────────────
 (function initOcean(){
   const canvas=document.getElementById('ocean-canvas');
   const ctx=canvas.getContext('2d');
@@ -193,7 +294,7 @@ function closeOnboarding(){
   window.addEventListener('resize',resize);resize();drawOcean();
 })();
 
-// PROBABILITY PANEL
+// ── PROBABILITY PANEL ────────────────────────────────────────────────────────
 function buildProbPanel(){
   const panel=document.getElementById('prob-panel');
   if(!panel)return;
@@ -239,7 +340,7 @@ function renderProbRows(){
   }).join('');
 }
 
-// BET SELECTOR
+// ── BET SELECTOR ─────────────────────────────────────────────────────────────
 function setBet(level){
   if(isSpinning)return;
   currentBetLevel=level;
@@ -251,7 +352,7 @@ function setBet(level){
   renderProbRows();
 }
 
-// FLOATING DELTA
+// ── FLOATING DELTA ───────────────────────────────────────────────────────────
 function spawnDelta(amount,isWin){
   const el=document.getElementById('balance');
   const rect=el.getBoundingClientRect();
@@ -264,30 +365,18 @@ function spawnDelta(amount,isWin){
   setTimeout(()=>div.remove(),1100);
 }
 
-// WIN BANNER
+// ── WIN BANNER ───────────────────────────────────────────────────────────────
 function showWinBanner(amount,key){
   const existing=document.getElementById('win-banner');
   if(existing)existing.remove();
-
   const tier=getWinTier(key);
   const tierNum=tier?tier.tier:'tier1';
-
+  const label=tierNum==='tier3'?'BIG WIN':tierNum==='tier4'?'BONUS WIN':tierNum==='tier2'?'WIN':'';
+  if(!label)return;
   const banner=document.createElement('div');
   banner.id='win-banner';
   banner.className=`win-banner win-banner-${tierNum}`;
-
-  const label=tierNum==='tier3'?'BIG WIN'
-    :tierNum==='tier4'?'BONUS WIN'
-    :tierNum==='tier2'?'WIN'
-    :'';
-
-  if(!label)return;
-
-  banner.innerHTML=`
-    <div class="wb-label">${label}</div>
-    <div class="wb-amount">$${amount.toFixed(2)}</div>
-  `;
-
+  banner.innerHTML=`<div class="wb-label">${label}</div><div class="wb-amount">$${amount.toFixed(2)}</div>`;
   document.getElementById('game-area').appendChild(banner);
   setTimeout(()=>{
     banner.classList.add('wb-fade');
@@ -295,7 +384,7 @@ function showWinBanner(amount,key){
   },tierNum==='tier3'||tierNum==='tier4'?2000:1200);
 }
 
-// TILE RENDERING
+// ── TILE RENDERING ───────────────────────────────────────────────────────────
 function setTile(id,sym,lineClass){
   const el=document.getElementById(id);
   const meta=META[sym];
@@ -305,12 +394,14 @@ function setTile(id,sym,lineClass){
 }
 function randSym(){return REEL[Math.floor(Math.random()*REEL.length)];}
 
-// SPIN
+// ── SPIN ─────────────────────────────────────────────────────────────────────
 function spin(){
   if(isSpinning)return;
   if(balance<BET){setMessage('No credits remain. Press RESET to sail again.');return;}
   isSpinning=true;
+  stopLightningIdle();
   document.getElementById('spin-btn').disabled=true;
+  document.getElementById('spin-btn').classList.add('spinning-active');
   balance-=BET;spinCount+=1;
   setMessage('...');setWinDisplay(0,false);
   spawnDelta(BET,false);
@@ -322,6 +413,8 @@ function spin(){
     evaluateSpin(payline,top,bot);
     isSpinning=false;
     document.getElementById('spin-btn').disabled=false;
+    document.getElementById('spin-btn').classList.remove('spinning-active');
+    startLightningIdle();
   });
 }
 
@@ -343,7 +436,7 @@ function animateReels(payline,top,bot,done){
   });
 }
 
-// EVALUATION
+// ── EVALUATION ───────────────────────────────────────────────────────────────
 function evaluateSpin(payline,top,bot){
   const[s0,s1,s2]=payline;
   const midIds=['r0-mid','r1-mid','r2-mid'];
@@ -354,8 +447,7 @@ function evaluateSpin(payline,top,bot){
     setMessage('THREE STRAW HATS — Treasure Hunt triggered!');
     triggerWinEffects('bonus',0,midIds,'hat');
     renderProbRows();
-    setTimeout(()=>openBonus(),1200);
-    return;
+    setTimeout(()=>openBonus(),1200);return;
   }
   if(s0!=='B'&&s0===s1&&s1===s2){
     const key='3'+s0,mult=PAYTABLE[key];
@@ -396,24 +488,19 @@ function evaluateSpin(payline,top,bot){
   if(balance<=0)setTimeout(()=>setMessage('Your voyage ends here. Press RESET to sail again.'),600);
 }
 
-// TIERED WIN EFFECTS
+// ── TIERED WIN EFFECTS ───────────────────────────────────────────────────────
 function triggerWinEffects(key,win,tileIds,cls){
   const tierInfo=getWinTier(key==='bonus'?'bonus':key);
   if(!tierInfo)return;
   const{tier,data}=tierInfo;
-
   pulseWinTiles(tileIds,cls,tier);
   spawnParticles(data.particles,tier);
   screenFlash(data.flashIntensity,tier);
-
   if(data.shake){
     document.getElementById('reel-frame').classList.add('screen-shake');
     setTimeout(()=>document.getElementById('reel-frame').classList.remove('screen-shake'),600);
   }
-
-  if(data.banner&&key!=='bonus'){
-    showWinBanner(win,key);
-  }
+  if(data.banner&&key!=='bonus')showWinBanner(win,key);
 }
 
 function pulseWinTiles(ids,cls,tier){
@@ -445,7 +532,6 @@ function spawnParticles(count,tier){
   const btn=document.getElementById('spin-btn');
   const rect=btn.getBoundingClientRect();
   const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
-
   const colorSets={
     tier1:['#F0C060','#C9973A'],
     tier2:['#F0C060','#FFE090','#FFFFFF'],
@@ -453,7 +539,6 @@ function spawnParticles(count,tier){
     tier4:['#2ABBA8','#60FFEE','#FFE090','#FFFFFF'],
   };
   const colors=colorSets[tier]||colorSets.tier1;
-
   for(let i=0;i<count;i++){
     const p=document.createElement('div');
     const size=tier==='tier3'||tier==='tier4'?6+Math.random()*8:3+Math.random()*5;
@@ -463,17 +548,16 @@ function spawnParticles(count,tier){
     const dur=0.6+Math.random()*0.8;
     p.className='particle';
     p.style.cssText=`left:${cx}px;top:${cy}px;width:${size}px;height:${size}px;background:${colors[Math.floor(Math.random()*colors.length)]};--tx:${tx}px;--ty:${ty}px;--dur:${dur}s;animation-delay:${Math.random()*0.2}s;`;
-    container.appendChild(p);
-    setTimeout(()=>p.remove(),(dur+0.3)*1000);
+    container.appendChild(p);setTimeout(()=>p.remove(),(dur+0.3)*1000);
   }
 }
 
-// HUD
+// ── HUD ──────────────────────────────────────────────────────────────────────
 function setMessage(msg){const el=document.getElementById('message');el.style.opacity='0';setTimeout(()=>{el.textContent=msg;el.style.opacity='1';},120);}
 function setWinDisplay(amount,hasWin){const el=document.getElementById('win-display');el.textContent='$'+amount.toFixed(2);el.classList.toggle('has-win',hasWin&&amount>0);}
 function updateHUD(){document.getElementById('balance').textContent='$'+balance.toFixed(2);document.getElementById('spin-count').textContent=spinCount;}
 
-// BONUS
+// ── BONUS ────────────────────────────────────────────────────────────────────
 function openBonus(){
   picksLeft=3;bonusPicks=[];chestVals=[...CHEST_POOL].sort(()=>Math.random()-0.5);
   const grid=document.getElementById('chest-grid');grid.innerHTML='';
@@ -513,7 +597,7 @@ function closeBonus(){
   renderProbRows();
 }
 
-// CONTROLS
+// ── CONTROLS ─────────────────────────────────────────────────────────────────
 function resetGame(){
   balance=100.00;spinCount=0;isSpinning=false;
   BET=DENOM*BET_LEVELS[currentBetLevel];
@@ -526,6 +610,11 @@ function resetGame(){
 function togglePaytable(){document.getElementById('paytable').classList.toggle('hidden');}
 
 document.addEventListener('keydown',e=>{if((e.key==='b'||e.key==='B')&&!isSpinning)openBonus();});
+window.addEventListener('resize',()=>{
+  if(!document.getElementById('onboarding-overlay').classList.contains('hidden')){
+    renderOnboardingStep();
+  }
+});
 
 window.onload=()=>{
   updateHUD();setWinDisplay(0,false);
@@ -533,5 +622,6 @@ window.onload=()=>{
   ['r0-top','r0-mid','r0-bot','r1-top','r1-mid','r1-bot','r2-top','r2-mid','r2-bot'].forEach(id=>
     setTile(id,'B',id.includes('mid')?'on-line':'off-line'));
   buildProbPanel();
-  setTimeout(()=>startOnboarding(),600);
+  startLightningIdle();
+  setTimeout(()=>startOnboarding(),800);
 };
