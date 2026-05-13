@@ -5,6 +5,7 @@ const DENOM=1.00;
 const BET_LEVELS=[1,3,5];
 let currentBetLevel=0;
 let BET=DENOM*BET_LEVELS[currentBetLevel];
+
 const META={
   M:{emoji:'🍖',name:'MEAT',cls:'meat'},
   W:{emoji:'📜',name:'WANTED',cls:'wanted'},
@@ -13,6 +14,7 @@ const META={
   S:{emoji:'🎩',name:'HAT',cls:'hat'},
   B:{emoji:'',name:'',cls:'blank'}
 };
+
 const WIN_MESSAGES={
   '3M':['Three Meat! Luffy approves.','Meat on the payline!'],
   '3W':['Wanted Posters matched!','The crew is notorious!'],
@@ -21,12 +23,14 @@ const WIN_MESSAGES={
   '2M':['Two Meat. Small victory.','A taste of glory.'],
   '2W':['Two Posters. Keep pressing.','Notoriety grows.']
 };
+
 const LOSS_MESSAGES=[
   'The sea gives nothing freely...','Press on, crew.',
   'The Grand Line tests your resolve.','Calm waters. Keep sailing.',
   'No treasure this tide.','The horizon holds more.',
   'Every sailor knows dry spells.'
 ];
+
 const PROB_DATA=[
   {key:'3D',label:'Devil Fruit ×3',prob:0.000751,mult:45,cls:'devil',emoji:'🍇',avgEvery:1333},
   {key:'BON',label:'Treasure Hunt',prob:0.000751,mult:9,cls:'hat',emoji:'🎩',avgEvery:1333},
@@ -37,8 +41,126 @@ const PROB_DATA=[
   {key:'2M',label:'Meat ×2',prob:0.054095,mult:3,cls:'meat',emoji:'🍖',avgEvery:18},
 ];
 
+// Win tier definitions
+const WIN_TIERS={
+  tier1:{keys:['2M','2W'],particles:6,shake:false,banner:false,flashIntensity:0.05},
+  tier2:{keys:['3M','3W'],particles:15,shake:false,banner:true,flashIntensity:0.12},
+  tier3:{keys:['3C','3D'],particles:30,shake:true,banner:true,flashIntensity:0.25},
+  tier4:{keys:['bonus'],particles:50,shake:true,banner:true,flashIntensity:0.4},
+};
+
+function getWinTier(key){
+  for(const[tier,data] of Object.entries(WIN_TIERS)){
+    if(data.keys.includes(key)) return {tier,data};
+  }
+  return null;
+}
+
 let balance=100.00,spinCount=0,isSpinning=false,picksLeft=0,bonusPicks=[],chestVals=[];
 let winCounts={'3D':0,'3C':0,'3W':0,'3M':0,'2W':0,'2M':0,'BON':0};
+
+// ONBOARDING
+const ONBOARDING_STEPS=[
+  {
+    title:'The Grand Line Awaits',
+    text:'Welcome to Grand Line Reels. This is a One Piece themed slot machine. Let us show you how to play.',
+    highlight:null,
+    position:'center'
+  },
+  {
+    title:'The Reels',
+    text:'These are your three reels. Each one spins independently and lands on a random symbol. Every spin is a new chance.',
+    highlight:'reel-frame',
+    position:'right'
+  },
+  {
+    title:'The Payline',
+    text:'Only the middle row pays. The gold line marks it. Match symbols across all three reels on this line to win.',
+    highlight:'reels-wrapper',
+    position:'right'
+  },
+  {
+    title:'Symbol Values',
+    text:'Meat and Wanted Posters are common. Treasure Chests and Devil Fruits are rare and pay more. The Straw Hat is special.',
+    highlight:'paytable',
+    position:'top'
+  },
+  {
+    title:'The Straw Hat',
+    text:'Three Straw Hats appearing anywhere on the grid triggers the Treasure Hunt bonus. This is what you are chasing.',
+    highlight:'prob-panel',
+    position:'left'
+  },
+  {
+    title:'Set Your Bet',
+    text:'Choose $1, $3, or $5 per spin. Higher bets mean bigger wins and faster sessions. You start with $100. Good luck.',
+    highlight:'bet-selector',
+    position:'top'
+  },
+];
+
+let onboardingStep=0;
+let onboardingActive=false;
+
+function startOnboarding(){
+  onboardingStep=0;
+  onboardingActive=true;
+  renderOnboardingStep();
+  document.getElementById('onboarding-overlay').classList.remove('hidden');
+}
+
+function renderOnboardingStep(){
+  const step=ONBOARDING_STEPS[onboardingStep];
+  const total=ONBOARDING_STEPS.length;
+
+  document.getElementById('ob-title').textContent=step.title;
+  document.getElementById('ob-text').textContent=step.text;
+  document.getElementById('ob-step').textContent=`${onboardingStep+1} of ${total}`;
+  document.getElementById('ob-prev').style.opacity=onboardingStep===0?'0.3':'1';
+  document.getElementById('ob-prev').disabled=onboardingStep===0;
+  document.getElementById('ob-next').textContent=
+    onboardingStep===total-1?'START SAILING':'NEXT →';
+
+  // Remove previous highlights
+  document.querySelectorAll('.ob-highlight').forEach(el=>el.classList.remove('ob-highlight'));
+
+  // Add new highlight
+  if(step.highlight){
+    const el=document.getElementById(step.highlight);
+    if(el) el.classList.add('ob-highlight');
+  }
+
+  // Update progress dots
+  const dots=document.getElementById('ob-dots');
+  dots.innerHTML=ONBOARDING_STEPS.map((_,i)=>
+    `<div class="ob-dot ${i===onboardingStep?'ob-dot-active':''}"></div>`
+  ).join('');
+}
+
+function nextOnboardingStep(){
+  if(onboardingStep>=ONBOARDING_STEPS.length-1){
+    closeOnboarding();
+  } else {
+    onboardingStep++;
+    renderOnboardingStep();
+  }
+}
+
+function prevOnboardingStep(){
+  if(onboardingStep>0){
+    onboardingStep--;
+    renderOnboardingStep();
+  }
+}
+
+function closeOnboarding(){
+  onboardingActive=false;
+  document.getElementById('onboarding-overlay').classList.add('hidden');
+  document.querySelectorAll('.ob-highlight').forEach(el=>el.classList.remove('ob-highlight'));
+  // Show paytable briefly after onboarding
+  document.getElementById('paytable').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('paytable').classList.add('hidden'),3000);
+}
 
 // OCEAN CANVAS
 (function initOcean(){
@@ -116,16 +238,18 @@ function renderProbRows(){
     `;
   }).join('');
 }
+
+// BET SELECTOR
 function setBet(level){
-    if(isSpinning)return;
-    currentBetLevel=level;
-    BET=DENOM*BET_LEVELS[level];
-    document.querySelectorAll('.bet-btn').forEach((b,i)=>{
-      b.classList.toggle('bet-active',i===level);
-    });
-    document.getElementById('bet-display').textContent='$'+BET.toFixed(2);
-    renderProbRows();
-  }
+  if(isSpinning)return;
+  currentBetLevel=level;
+  BET=DENOM*BET_LEVELS[level];
+  document.querySelectorAll('.bet-btn').forEach((b,i)=>{
+    b.classList.toggle('bet-active',i===level);
+  });
+  document.getElementById('bet-display').textContent='$'+BET.toFixed(2);
+  renderProbRows();
+}
 
 // FLOATING DELTA
 function spawnDelta(amount,isWin){
@@ -138,6 +262,37 @@ function spawnDelta(amount,isWin){
   div.style.top=rect.top+'px';
   document.body.appendChild(div);
   setTimeout(()=>div.remove(),1100);
+}
+
+// WIN BANNER
+function showWinBanner(amount,key){
+  const existing=document.getElementById('win-banner');
+  if(existing)existing.remove();
+
+  const tier=getWinTier(key);
+  const tierNum=tier?tier.tier:'tier1';
+
+  const banner=document.createElement('div');
+  banner.id='win-banner';
+  banner.className=`win-banner win-banner-${tierNum}`;
+
+  const label=tierNum==='tier3'?'BIG WIN'
+    :tierNum==='tier4'?'BONUS WIN'
+    :tierNum==='tier2'?'WIN'
+    :'';
+
+  if(!label)return;
+
+  banner.innerHTML=`
+    <div class="wb-label">${label}</div>
+    <div class="wb-amount">$${amount.toFixed(2)}</div>
+  `;
+
+  document.getElementById('game-area').appendChild(banner);
+  setTimeout(()=>{
+    banner.classList.add('wb-fade');
+    setTimeout(()=>banner.remove(),600);
+  },tierNum==='tier3'||tierNum==='tier4'?2000:1200);
 }
 
 // TILE RENDERING
@@ -195,8 +350,12 @@ function evaluateSpin(payline,top,bot){
 
   if(s0==='S'&&s1==='S'&&s2==='S'){
     winCounts['BON']++;updateHUD();setWinDisplay(0,false);
-    pulseWinTiles(midIds,'hat');setMessage('THREE STRAW HATS — Treasure Hunt triggered!');
-    screenFlash();renderProbRows();setTimeout(()=>openBonus(),900);return;
+    pulseWinTiles(midIds,'hat','tier4');
+    setMessage('THREE STRAW HATS — Treasure Hunt triggered!');
+    triggerWinEffects('bonus',0,midIds,'hat');
+    renderProbRows();
+    setTimeout(()=>openBonus(),1200);
+    return;
   }
   if(s0!=='B'&&s0===s1&&s1===s2){
     const key='3'+s0,mult=PAYTABLE[key];
@@ -206,7 +365,8 @@ function evaluateSpin(payline,top,bot){
       setWinDisplay(win,true);updateHUD();spawnDelta(win,true);
       const msgs=WIN_MESSAGES[key];
       setMessage(msgs[Math.floor(Math.random()*msgs.length)]+`  +$${win.toFixed(2)}`);
-      pulseWinTiles(midIds,META[s0].cls);spawnParticles(win);screenFlash();renderProbRows();return;
+      triggerWinEffects(key,win,midIds,META[s0].cls);
+      renderProbRows();return;
     }
   }
   if(s0!=='B'&&s0===s1&&s2!==s0){
@@ -217,7 +377,8 @@ function evaluateSpin(payline,top,bot){
       setWinDisplay(win,true);updateHUD();spawnDelta(win,true);
       const msgs=WIN_MESSAGES[key];
       setMessage(msgs[Math.floor(Math.random()*msgs.length)]+`  +$${win.toFixed(2)}`);
-      pulseWinTiles(['r0-mid','r1-mid'],META[s0].cls);spawnParticles(win*0.5);renderProbRows();return;
+      triggerWinEffects(key,win,['r0-mid','r1-mid'],META[s0].cls);
+      renderProbRows();return;
     }
   }
 
@@ -235,29 +396,75 @@ function evaluateSpin(payline,top,bot){
   if(balance<=0)setTimeout(()=>setMessage('Your voyage ends here. Press RESET to sail again.'),600);
 }
 
-// VISUAL FX
-function pulseWinTiles(ids,cls){
+// TIERED WIN EFFECTS
+function triggerWinEffects(key,win,tileIds,cls){
+  const tierInfo=getWinTier(key==='bonus'?'bonus':key);
+  if(!tierInfo)return;
+  const{tier,data}=tierInfo;
+
+  pulseWinTiles(tileIds,cls,tier);
+  spawnParticles(data.particles,tier);
+  screenFlash(data.flashIntensity,tier);
+
+  if(data.shake){
+    document.getElementById('reel-frame').classList.add('screen-shake');
+    setTimeout(()=>document.getElementById('reel-frame').classList.remove('screen-shake'),600);
+  }
+
+  if(data.banner&&key!=='bonus'){
+    showWinBanner(win,key);
+  }
+}
+
+function pulseWinTiles(ids,cls,tier){
   ids.forEach(id=>{
     const el=document.getElementById(id);
-    el.classList.add('win-tile','win-glow',cls);
-    setTimeout(()=>{el.classList.remove('win-tile');setTimeout(()=>el.classList.remove('win-glow',cls),800);},600);
+    el.classList.add('win-tile',`win-glow-${tier}`,cls);
+    const duration=tier==='tier3'||tier==='tier4'?1200:700;
+    setTimeout(()=>{
+      el.classList.remove('win-tile');
+      setTimeout(()=>el.classList.remove(`win-glow-${tier}`,cls),800);
+    },duration);
   });
 }
-function screenFlash(){document.body.classList.remove('win-flash');void document.body.offsetWidth;document.body.classList.add('win-flash');setTimeout(()=>document.body.classList.remove('win-flash'),500);}
-function spawnParticles(winAmount){
+
+function screenFlash(intensity,tier){
+  const flash=document.getElementById('screen-flash');
+  flash.style.background=
+    tier==='tier4'?`rgba(42,187,168,${intensity})`
+    :tier==='tier3'?`rgba(160,60,255,${intensity})`
+    :`rgba(201,151,58,${intensity})`;
+  flash.classList.remove('flash-active');
+  void flash.offsetWidth;
+  flash.classList.add('flash-active');
+  setTimeout(()=>flash.classList.remove('flash-active'),500);
+}
+
+function spawnParticles(count,tier){
   const container=document.getElementById('particle-container');
-  const count=Math.min(6+Math.floor(winAmount*60),30);
   const btn=document.getElementById('spin-btn');
   const rect=btn.getBoundingClientRect();
   const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
-  const colors=['#F0C060','#C9973A','#FFE090','#FFFFFF','#2ABBA8'];
+
+  const colorSets={
+    tier1:['#F0C060','#C9973A'],
+    tier2:['#F0C060','#FFE090','#FFFFFF'],
+    tier3:['#E080FF','#A040C0','#FFE090','#FFFFFF'],
+    tier4:['#2ABBA8','#60FFEE','#FFE090','#FFFFFF'],
+  };
+  const colors=colorSets[tier]||colorSets.tier1;
+
   for(let i=0;i<count;i++){
     const p=document.createElement('div');
-    const size=4+Math.random()*6,angle=Math.random()*Math.PI*2,dist=80+Math.random()*180;
-    const tx=Math.cos(angle)*dist,ty=Math.sin(angle)*dist-60,dur=0.6+Math.random()*0.6;
+    const size=tier==='tier3'||tier==='tier4'?6+Math.random()*8:3+Math.random()*5;
+    const angle=Math.random()*Math.PI*2;
+    const dist=(tier==='tier3'||tier==='tier4'?120:80)+Math.random()*200;
+    const tx=Math.cos(angle)*dist,ty=Math.sin(angle)*dist-80;
+    const dur=0.6+Math.random()*0.8;
     p.className='particle';
-    p.style.cssText=`left:${cx}px;top:${cy}px;width:${size}px;height:${size}px;background:${colors[Math.floor(Math.random()*colors.length)]};--tx:${tx}px;--ty:${ty}px;--dur:${dur}s;animation-delay:${Math.random()*0.15}s;`;
-    container.appendChild(p);setTimeout(()=>p.remove(),(dur+0.2)*1000);
+    p.style.cssText=`left:${cx}px;top:${cy}px;width:${size}px;height:${size}px;background:${colors[Math.floor(Math.random()*colors.length)]};--tx:${tx}px;--ty:${ty}px;--dur:${dur}s;animation-delay:${Math.random()*0.2}s;`;
+    container.appendChild(p);
+    setTimeout(()=>p.remove(),(dur+0.3)*1000);
   }
 }
 
@@ -295,7 +502,8 @@ function revealAll(){
   document.getElementById('bonus-result').classList.remove('hidden');
   document.getElementById('bonus-close').classList.remove('hidden');
   document.getElementById('bonus-instruction').textContent=`The vault yielded $${payout.toFixed(2)} in treasure.`;
-  spawnParticles(payout*2);spawnDelta(payout,true);
+  spawnParticles(50,'tier4');spawnDelta(payout,true);
+  showWinBanner(payout,'bonus');
 }
 function closeBonus(){
   document.getElementById('bonus-overlay').classList.add('hidden');
@@ -307,8 +515,8 @@ function closeBonus(){
 
 // CONTROLS
 function resetGame(){
-    balance=100.00;
-    BET=DENOM*BET_LEVELS[currentBetLevel];
+  balance=100.00;spinCount=0;isSpinning=false;
+  BET=DENOM*BET_LEVELS[currentBetLevel];
   winCounts={'3D':0,'3C':0,'3W':0,'3M':0,'2W':0,'2M':0,'BON':0};
   updateHUD();setWinDisplay(0,false);setMessage('New voyage. Press SPIN to set sail.');
   ['r0-top','r0-mid','r0-bot','r1-top','r1-mid','r1-bot','r2-top','r2-mid','r2-bot'].forEach(id=>
@@ -317,12 +525,13 @@ function resetGame(){
 }
 function togglePaytable(){document.getElementById('paytable').classList.toggle('hidden');}
 
-// Press B to force bonus for demo/walkthrough
 document.addEventListener('keydown',e=>{if((e.key==='b'||e.key==='B')&&!isSpinning)openBonus();});
 
 window.onload=()=>{
   updateHUD();setWinDisplay(0,false);
+  document.getElementById('bet-display').textContent='$'+BET.toFixed(2);
   ['r0-top','r0-mid','r0-bot','r1-top','r1-mid','r1-bot','r2-top','r2-mid','r2-bot'].forEach(id=>
     setTile(id,'B',id.includes('mid')?'on-line':'off-line'));
   buildProbPanel();
+  setTimeout(()=>startOnboarding(),600);
 };
