@@ -602,10 +602,7 @@ function simulateSession(bankroll, numSpins, seed, bet){
     }
   }
 
-  const spinsPlayed = Math.min(
-    numSpins,
-    Math.floor(bankroll / bet) + 1
-  );
+  const spinsPlayed = events.length;
 
   return {
     events,
@@ -613,8 +610,13 @@ function simulateSession(bankroll, numSpins, seed, bet){
     startingBalance:bankroll,
     spinsPlayed,
     totalWon:Math.round(totalWon*100)/100,
-    totalWagered:Math.round(spinsPlayed * bet * 100)/100,
-    realizedRTP:Math.round((totalWon / (spinsPlayed * bet))*10000)/100,
+    totalWagered:
+  Math.round(events.length * bet * 100) / 100,
+
+realizedRTP:
+  Math.round(
+    (totalWon / (events.length * bet)) * 10000
+  ) / 100,
     maxDrySpell:maxDry,
     wins,
     biggestWin:Math.round(biggestWin*100)/100,
