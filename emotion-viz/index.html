@@ -1,618 +1,779 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grand Line Reels — Math to Emotion Visualization</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --navy:#060D1A;--navy-mid:#0F1F38;--navy-light:#162840;
-  --gold:#C9973A;--gold-bright:#F0C060;--gold-dim:#7A5A1A;
-  --teal:#2ABBA8;--white:#F0EDE8;--gray:#6A6860;
-  --curious:#2ABBA8;--excited:#F0C060;--calibrated:#7A9AC0;
-  --focused:#C9973A;--tense:#E08040;--frustrated:#CC4040;
-  --elated:#60FF90;--resigned:#666688;
-}
-html,body{min-height:100%;background:var(--navy)}
-body{color:var(--white);font-family:'Crimson Text',serif;padding:0;overflow-x:hidden}
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-/* HEADER */
-#page-header{
-  text-align:center;padding:48px 24px 32px;
-  background:linear-gradient(180deg,rgba(10,22,40,0.95) 0%,transparent 100%);
-  position:relative;
+<title>Emotion Visualization — Grand Line Reels</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Text:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
 }
-#page-header::after{
-  content:'';position:absolute;bottom:0;left:10%;right:10%;
-  height:1px;background:linear-gradient(90deg,transparent,rgba(201,151,58,0.4),transparent);
+
+:root{
+  --navy:#060D1A;
+  --navyMid:#0F1F38;
+  --gold:#C9973A;
+  --goldBright:#F0C060;
+  --teal:#2ABBA8;
+  --red:#FF6060;
+  --green:#6FFF90;
+  --white:#F0EDE8;
+  --gray:#8D8A84;
 }
-#page-header h1{
-  font-family:'Cinzel Decorative',serif;
-  font-size:clamp(1.2rem,3vw,2rem);
-  color:var(--gold-bright);letter-spacing:4px;
-  text-shadow:0 0 24px rgba(240,192,96,0.4);
+
+body{
+  background:var(--navy);
+  color:var(--white);
+  font-family:'Crimson Text',serif;
+  min-height:100vh;
+  padding:40px 20px;
+}
+
+.container{
+  max-width:1400px;
+  margin:0 auto;
+}
+
+header{
+  text-align:center;
+  margin-bottom:40px;
+}
+
+header h1{
+  font-family:'Cinzel',serif;
+  letter-spacing:4px;
+  color:var(--goldBright);
+  margin-bottom:10px;
+}
+
+header p{
+  color:var(--gray);
+  font-size:1.05rem;
+}
+
+#multi-viz{
+  margin-top:32px;
+}
+
+.viz-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:24px;
+}
+
+.viz-card{
+  background:rgba(15,31,56,0.88);
+  border:1px solid rgba(201,151,58,0.18);
+  border-radius:16px;
+  padding:22px;
+  backdrop-filter:blur(8px);
+}
+
+.viz-card h2{
+  font-family:'Cinzel',serif;
+  letter-spacing:2px;
+  font-size:0.9rem;
+  color:var(--goldBright);
   margin-bottom:8px;
 }
-#page-header .sub{
-  font-family:'Crimson Text',serif;font-style:italic;
-  color:var(--gray);font-size:1rem;letter-spacing:1px;
+
+.viz-description{
+  color:var(--gray);
+  margin-bottom:18px;
+  line-height:1.5;
+  font-size:0.95rem;
 }
 
-/* SESSION STATS BAR */
-#stats-row{
-  display:flex;justify-content:center;flex-wrap:wrap;gap:0;
-  padding:20px 24px;max-width:1100px;margin:0 auto;
-}
-.stat-pill{
-  display:flex;flex-direction:column;align-items:center;
-  padding:12px 24px;gap:4px;
-  border-right:1px solid rgba(201,151,58,0.15);
-}
-.stat-pill:last-child{border-right:none}
-.stat-pill .s-label{font-family:'Cinzel',serif;font-size:0.55rem;letter-spacing:2px;color:var(--gray)}
-.stat-pill .s-val{font-family:'Cinzel',serif;font-size:1rem;font-weight:700;color:var(--gold)}
-.stat-pill .s-val.cold{color:#FF6060}
-.stat-pill .s-val.hot{color:var(--teal)}
-
-/* MAIN VIZ CONTAINER */
-#viz-container{
-  max-width:1100px;margin:0 auto;padding:0 24px 40px;
-  display:flex;flex-direction:column;gap:24px;
+canvas{
+  width:100%;
+  height:240px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.05);
+  border-radius:12px;
 }
 
-/* CHART WRAPPER */
-#chart-wrapper{
-  background:linear-gradient(160deg,rgba(10,20,38,0.98),rgba(6,12,24,0.99));
-  border:1px solid rgba(201,151,58,0.2);border-radius:16px;
-  padding:28px 16px 16px;
-  box-shadow:0 8px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(201,151,58,0.06);
-  position:relative;overflow:hidden;
-}
-#chart-wrapper::before{
-  content:'SESSION TIMELINE';
-  position:absolute;top:10px;left:20px;
-  font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:3px;color:rgba(201,151,58,0.4);
+.viz-stats{
+  margin-top:18px;
+  display:grid;
+  gap:10px;
 }
 
-#chart-svg{width:100%;overflow:visible}
-
-/* EMOTION BAND */
-#emotion-wrapper{
-  background:linear-gradient(160deg,rgba(10,20,38,0.98),rgba(6,12,24,0.99));
-  border:1px solid rgba(201,151,58,0.2);border-radius:16px;
-  padding:20px 16px;
-  box-shadow:0 8px 40px rgba(0,0,0,0.6);
-  position:relative;
-}
-#emotion-wrapper::before{
-  content:'EMOTIONAL STATE';
-  position:absolute;top:10px;left:20px;
-  font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:3px;color:rgba(201,151,58,0.4);
-}
-#emotion-svg{width:100%;overflow:visible}
-
-/* LEGEND */
-#legend{
-  display:flex;flex-wrap:wrap;gap:12px;justify-content:center;
-  padding:16px;
-  background:rgba(10,20,38,0.6);border:1px solid rgba(201,151,58,0.1);border-radius:10px;
-}
-.legend-item{display:flex;align-items:center;gap:8px}
-.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.legend-label{font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:1px;color:var(--gray)}
-
-/* TOOLTIP */
-#tooltip{
-  position:fixed;pointer-events:none;z-index:100;
-  background:linear-gradient(135deg,rgba(10,25,50,0.98),rgba(6,14,28,0.99));
-  border:1px solid rgba(201,151,58,0.4);border-radius:12px;
-  padding:14px 16px;min-width:200px;
-  box-shadow:0 8px 32px rgba(0,0,0,0.6);
-  opacity:0;transition:opacity 0.15s ease;
-}
-#tooltip.visible{opacity:1}
-#tooltip .tt-spin{font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;color:var(--gray);margin-bottom:8px}
-#tooltip .tt-balance{font-family:'Cinzel',serif;font-size:1.3rem;font-weight:700;color:var(--gold-bright);margin-bottom:6px}
-#tooltip .tt-event{font-family:'Crimson Text',serif;font-style:italic;font-size:0.9rem;color:rgba(240,220,190,0.8);margin-bottom:6px}
-#tooltip .tt-emotion{display:inline-block;font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:2px;padding:3px 10px;border-radius:10px;margin-top:2px}
-#tooltip .tt-win{font-family:'Cinzel',serif;font-size:0.85rem;color:#6FFF90;margin-top:4px}
-
-/* COMPANION TEXT */
-#companion{
-  background:linear-gradient(160deg,rgba(10,20,38,0.98),rgba(6,12,24,0.99));
-  border:1px solid rgba(201,151,58,0.2);border-radius:16px;
-  padding:32px;
-}
-#companion h2{
-  font-family:'Cinzel',serif;font-size:0.8rem;letter-spacing:4px;
-  color:var(--gold);margin-bottom:20px;padding-bottom:12px;
-  border-bottom:1px solid rgba(201,151,58,0.2);
-}
-.companion-body{
-  display:grid;grid-template-columns:1fr 1fr;gap:24px;
-}
-@media(max-width:700px){.companion-body{grid-template-columns:1fr}}
-.companion-col h3{
-  font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:2px;
-  color:var(--teal);margin-bottom:10px;
-}
-.companion-col p{
-  font-family:'Crimson Text',serif;font-style:italic;
-  font-size:0.95rem;line-height:1.7;color:rgba(240,220,190,0.8);
-  margin-bottom:12px;
+.viz-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:rgba(255,255,255,0.03);
+  padding:10px 12px;
+  border-radius:8px;
 }
 
-/* HOVER LINE */
-.hover-line{stroke:rgba(201,151,58,0.3);stroke-width:1;stroke-dasharray:4 3;pointer-events:none}
-.hover-dot{fill:var(--gold-bright);stroke:var(--navy);stroke-width:2;pointer-events:none;r:5}
+.viz-row span{
+  color:rgba(240,220,190,0.8);
+}
+
+.viz-row strong{
+  color:var(--goldBright);
+  font-family:'Cinzel',serif;
+}
+
+.analysis-panel{
+  margin-top:40px;
+  background:rgba(15,31,56,0.9);
+  border:1px solid rgba(201,151,58,0.18);
+  border-radius:18px;
+  padding:30px;
+}
+
+.analysis-panel h2{
+  font-family:'Cinzel',serif;
+  color:var(--goldBright);
+  margin-bottom:18px;
+  letter-spacing:3px;
+}
+
+.analysis-panel p{
+  line-height:1.9;
+  margin-bottom:18px;
+  color:rgba(240,220,190,0.88);
+}
+
+.legend{
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+  margin-top:18px;
+}
+
+.legend-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.legend-color{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+}
+
+footer{
+  margin-top:50px;
+  text-align:center;
+  color:var(--gray);
+  font-size:0.9rem;
+}
+
 </style>
 </head>
+
 <body>
 
-<div id="page-header">
-  <h1>MATH TO EMOTION</h1>
-  <p class="sub">How Grand Line Reels turns probability into player experience</p>
-</div>
+<div class="container">
 
-<div id="stats-row">
-  <div class="stat-pill"><span class="s-label">SESSION</span><span class="s-val">493 Spins</span></div>
-  <div class="stat-pill"><span class="s-label">START BALANCE</span><span class="s-val">$100.00</span></div>
-  <div class="stat-pill"><span class="s-label">PEAK BALANCE</span><span class="s-val hot">$185.00</span></div>
-  <div class="stat-pill"><span class="s-label">END BALANCE</span><span class="s-val cold">$0.00</span></div>
-  <div class="stat-pill"><span class="s-label">REALIZED RTP</span><span class="s-val cold">~61%</span></div>
-  <div class="stat-pill"><span class="s-label">THEORETICAL RTP</span><span class="s-val">90.14%</span></div>
-  <div class="stat-pill"><span class="s-label">LONGEST DRY SPELL</span><span class="s-val cold">48 Spins</span></div>
-  <div class="stat-pill"><span class="s-label">BET MIX</span><span class="s-val">$1 / $3 / $5</span></div>
-</div>
+<header>
+  <h1>GRAND LINE REELS</h1>
+  <p>
+    Comparative Math-to-Emotion Visualization Across Multiple Player Archetypes
+  </p>
+</header>
 
-<div id="viz-container">
-  <div id="chart-wrapper">
-    <svg id="chart-svg"></svg>
-  </div>
-  <div id="emotion-wrapper">
-    <svg id="emotion-svg"></svg>
-  </div>
-  <div id="legend"></div>
-  <div id="companion">
-    <h2>COMPANION ANALYSIS</h2>
-    <div class="companion-body">
-      <div class="companion-col">
-        <h3>WHAT THIS SHOWS</h3>
-        <p>The upper chart traces the bankroll across 493 spins of a real playtesting session. The line is not smooth. It is a record of variance: small wins that barely offset the bet, occasional medium wins that extend the session, one dramatic spike to $185, and a long cold decline to zero.</p>
-        <p>The lower band shows the emotional state at each phase of the session. These are not hypothetical. They are reconstructed from first-person playtesting notes. The colors shift from teal curiosity through gold focus to red frustration as the session progresses and the cold variance accumulates.</p>
-        <p>The annotations mark the moments where math events produced the largest emotional shifts: the peak at $185 that anchored the player's expectations, the 48-spin dry spell that produced genuine anxiety, and the escalating $5 bets that reflected the anchoring mechanism activating.</p>
+<div id="multi-viz">
+
+  <div class="viz-grid">
+
+    <!-- CASUAL -->
+    <div class="viz-card">
+
+      <h2>CASUAL PLAYER</h2>
+
+      <div class="viz-description">
+        Short session, low wager, emotionally reactive to small wins and early bonus anticipation.
       </div>
-      <div class="companion-col">
-        <h3>WHAT A HISTOGRAM HIDES</h3>
-        <p>A standard payout distribution histogram would show this session as an outlier: realized RTP of approximately 61% against a theoretical 90.14%. It would correctly identify that Wanted x3 hit zero times against an expectation of 5.8. It would show Meat x2 hitting at half the expected rate.</p>
-        <p>What it cannot show is that the player peaked at $185 and felt compelled to increase bets to chase $200. It cannot show that the 48-spin dry spell arrived after the peak and felt like a punishment for ambition rather than normal variance. It cannot show that the same math that produced boredom at spin 50 produced genuine dread at spin 400.</p>
-        <p>The emotional arc is not in the math. It emerges from the interaction between math events and player state. Low volatility games produce a specific arc: calibration, rhythm, anticipation, climax or resignation. This visualization makes that arc visible in a way that aggregate statistics cannot.</p>
-      </div>
+
+      <canvas id="viz-casual"></canvas>
+
+      <div class="viz-stats" id="stats-casual"></div>
+
     </div>
+
+    <!-- GRINDER -->
+    <div class="viz-card">
+
+      <h2>EXPERIENCED GRINDER</h2>
+
+      <div class="viz-description">
+        Long-session player with calibrated expectations and lower emotional volatility.
+      </div>
+
+      <canvas id="viz-grinder"></canvas>
+
+      <div class="viz-stats" id="stats-grinder"></div>
+
+    </div>
+
+    <!-- UNLUCKY -->
+    <div class="viz-card">
+
+      <h2>UNLUCKY CHASER</h2>
+
+      <div class="viz-description">
+        High wager player experiencing repeated dry spells and escalating frustration.
+      </div>
+
+      <canvas id="viz-unlucky"></canvas>
+
+      <div class="viz-stats" id="stats-unlucky"></div>
+
+    </div>
+
   </div>
+
 </div>
 
-<div id="tooltip">
-  <div class="tt-spin" id="tt-spin">SPIN 0</div>
-  <div class="tt-balance" id="tt-balance">$100.00</div>
-  <div class="tt-event" id="tt-event"></div>
-  <div class="tt-win" id="tt-win"></div>
-  <span class="tt-emotion" id="tt-emotion"></span>
+<div class="analysis-panel">
+
+  <h2>COMPARATIVE ANALYSIS</h2>
+
+  <p>
+    These visualizations demonstrate how identical slot machine math can generate
+    dramatically different emotional experiences depending on player profile,
+    bankroll structure, and session duration.
+  </p>
+
+  <p>
+    The Casual Player exhibits sharp emotional spikes from relatively small wins,
+    illustrating how novelty amplifies perceived reward value during short sessions.
+    The Experienced Grinder shows emotional stabilization over time as repeated exposure
+    reduces reactivity to common outcomes and reinforces expectation calibration.
+  </p>
+
+  <p>
+    The Unlucky Chaser demonstrates how extended dry spells combined with higher wagers
+    create compounding frustration and emotional collapse. Even without changing the
+    underlying reel math, bankroll pressure intensifies negative emotional response.
+  </p>
+
+  <p>
+    Together, these simulations show that slot design is not solely about payout percentages.
+    Session pacing, volatility spacing, reward frequency, and bankroll depletion curves all
+    contribute directly to emotional engagement and player retention behavior.
+  </p>
+
+  <div class="legend">
+
+    <div class="legend-item">
+      <div class="legend-color" style="background:#2ABBA8;"></div>
+      <span>Casual Player</span>
+    </div>
+
+    <div class="legend-item">
+      <div class="legend-color" style="background:#F0C060;"></div>
+      <span>Experienced Grinder</span>
+    </div>
+
+    <div class="legend-item">
+      <div class="legend-color" style="background:#FF6060;"></div>
+      <span>Unlucky Chaser</span>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>
+  Grand Line Reels — Emotion Visualization System
+</footer>
+
 </div>
 
 <script>
-// ── SESSION DATA ──────────────────────────────────────────────────────────────
-// Reconstructed from real playtesting session data
-// 493 spins, starting balance $100, peak $185, ended at $0
-// Mixed bet sizes: $1 early, $3 mid, $5 at peak and late chase
 
-const EMOTIONS = {
-  curious:    { label: 'CURIOUS',    color: '#2ABBA8' },
-  excited:    { label: 'EXCITED',    color: '#F0C060' },
-  calibrated: { label: 'CALIBRATED', color: '#7A9AC0' },
-  focused:    { label: 'FOCUSED',    color: '#C9973A' },
-  tense:      { label: 'TENSE',      color: '#E08040' },
-  frustrated: { label: 'FRUSTRATED', color: '#CC4040' },
-  elated:     { label: 'ELATED',     color: '#60FF90' },
-  resigned:   { label: 'RESIGNED',   color: '#888899' },
+// ─────────────────────────────────────────────
+// SLOT MATH
+// ─────────────────────────────────────────────
+
+const REEL = [
+  'M','M','M','M','M','M',
+  'W','W','W','W','W',
+  'C','C','C','C',
+  'D','D',
+  'S','S',
+  'B','B','B'
+];
+
+const PAYTABLE = {
+  '3M':8,
+  '3W':15,
+  '3C':40,
+  '3D':45,
+  '2M':3,
+  '2W':3
 };
 
-// Generate realistic session data based on actual playtesting records
-function generateSession() {
-  const data = [];
-  let balance = 100;
-  let rng = mulberry32(42);
+const CHEST_POOL = [2,2,2,2,3,3,3,5,5];
 
-  const REEL = ['M','M','M','M','M','M','W','W','W','W','W','C','C','C','C','D','D','S','S','B','B','B'];
-  const PAYTABLE = {'3M':8,'3W':15,'3C':40,'3D':45,'2M':3,'2W':3};
-  const CHEST_POOL = [2,2,2,2,3,3,3,5,5];
+// ─────────────────────────────────────────────
+// RNG
+// ─────────────────────────────────────────────
 
-  // Bet schedule matching real session: start $1, increase at spin 80, $5 at peak, retreat
-  function getBet(spin, bal) {
-    if (spin < 80) return 1;
-    if (spin < 150) return 3;
-    if (bal >= 150) return 5;
-    if (bal >= 120) return 3;
-    if (bal >= 80) return 3;
-    return 1;
-  }
+function seededRandom(seed){
 
-  // Emotion based on spin phase and balance trend
-  function getEmotion(spin, bal, prevBal, drySpell) {
-    if (spin < 30) return 'curious';
-    if (spin < 60 && bal > 95) return 'excited';
-    if (spin < 150 && drySpell < 10) return 'calibrated';
-    if (bal >= 140) return 'elated';
-    if (bal >= 120) return 'focused';
-    if (drySpell >= 25) return 'frustrated';
-    if (drySpell >= 15) return 'tense';
-    if (bal < 40 && spin > 300) return 'resigned';
-    if (bal < 60) return 'tense';
-    return 'focused';
-  }
+  let s = seed;
 
-  let drySpell = 0;
-  let maxDry = 0;
+  return function(){
 
-  for (let spin = 1; spin <= 493; spin++) {
-    if (balance <= 0) break;
-    const bet = getBet(spin, balance);
-    if (balance < bet) break;
+    s = (s * 1664525 + 1013904223) & 0xFFFFFFFF;
 
-    balance -= bet;
-
-    const s = [0,1,2].map(() => REEL[Math.floor(rng() * REEL.length)]);
-    let win = 0;
-    let event = null;
-    let isBonus = false;
-
-    if (s[0]==='S' && s[1]==='S' && s[2]==='S') {
-      const pool = [...CHEST_POOL].sort(() => rng() - 0.5);
-      const mult = pool.slice(0,3).reduce((a,b)=>a+b,0);
-      win = mult * bet;
-      event = `Treasure Hunt triggered! +$${win.toFixed(0)}`;
-      isBonus = true;
-    } else if (s[0]!=='B' && s[0]===s[1] && s[1]===s[2]) {
-      const key = '3'+s[0];
-      if (PAYTABLE[key]) { win = PAYTABLE[key]*bet; event = `Three ${s[0]}! +$${win.toFixed(0)}`; }
-    } else if (s[0]!=='B' && s[0]===s[1] && s[2]!==s[0]) {
-      const key = '2'+s[0];
-      if (PAYTABLE[key]) { win = PAYTABLE[key]*bet; event = `Two ${s[0]}  +$${win.toFixed(0)}`; }
-    }
-
-    balance += win;
-    balance = Math.max(0, balance);
-
-    if (win === 0) { drySpell++; maxDry = Math.max(maxDry, drySpell); }
-    else drySpell = 0;
-
-    const emotion = getEmotion(spin, balance, balance - win + bet, drySpell);
-
-    data.push({
-      spin, balance: Math.round(balance * 100) / 100,
-      bet, win: Math.round(win * 100) / 100,
-      event, isBonus, drySpell, emotion,
-      isWin: win > 0,
-    });
-  }
-
-  return data;
-}
-
-function mulberry32(seed) {
-  return function() {
-    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
-    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    return (s >>> 0) / 0xFFFFFFFF;
   };
 }
 
-const sessionData = generateSession();
+// ─────────────────────────────────────────────
+// SESSION SIMULATION
+// ─────────────────────────────────────────────
 
-// Key annotations
-const ANNOTATIONS = [
-  { spin: 1,   label: 'Session begins\n$100 bankroll', side: 'right' },
-  { spin: 80,  label: 'Calibrated\nBet increases to $3', side: 'right' },
-  { spin: Math.round(sessionData.reduce((m,d) => d.balance > sessionData[m]?.balance ? d.spin : m, 0)),
-    label: 'PEAK $185\nBet escalates to $5', side: 'left', peak: true },
-  { spin: sessionData.reduce((best, d, i, arr) => {
-      if (i < 2) return best;
-      let dry = 0;
-      for (let j = i; j >= 0 && arr[j].win === 0; j--) dry++;
-      return dry > best.len ? { spin: d.spin, len: dry } : best;
-    }, { spin: 0, len: 0 }).spin,
-    label: '48-spin dry spell\nVariance runs cold', side: 'right', danger: true },
-];
+function simulateSession(bankroll, numSpins, seed, bet){
 
-// ── D3 VISUALIZATION ─────────────────────────────────────────────────────────
-const margin = { top: 20, right: 40, bottom: 40, left: 60 };
+  const rand = seededRandom(seed);
 
-function buildChart() {
-  const wrapper = document.getElementById('chart-wrapper');
-  const W = wrapper.clientWidth - 32;
-  const H = Math.min(320, W * 0.35);
-  const innerW = W - margin.left - margin.right;
-  const innerH = H - margin.top - margin.bottom;
+  let balance = bankroll;
 
-  const svg = d3.select('#chart-svg')
-    .attr('width', W)
-    .attr('height', H);
+  let drySpell = 0;
+  let maxDrySpell = 0;
 
-  svg.selectAll('*').remove();
+  let biggestWin = 0;
+  let totalWon = 0;
 
-  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+  let bonusTriggered = false;
 
-  const xScale = d3.scaleLinear().domain([1, sessionData.length]).range([0, innerW]);
-  const yScale = d3.scaleLinear()
-    .domain([0, d3.max(sessionData, d => d.balance) * 1.1])
-    .range([innerH, 0]);
+  const events = [];
 
-  // Grid lines
-  g.append('g').attr('class', 'grid')
-    .selectAll('line').data(yScale.ticks(5)).enter()
-    .append('line')
-    .attr('x1', 0).attr('x2', innerW)
-    .attr('y1', d => yScale(d)).attr('y2', d => yScale(d))
-    .attr('stroke', 'rgba(201,151,58,0.08)').attr('stroke-width', 1);
+  for(let spin = 1; spin <= numSpins; spin++){
 
-  // Starting balance reference line
-  g.append('line')
-    .attr('x1', 0).attr('x2', innerW)
-    .attr('y1', yScale(100)).attr('y2', yScale(100))
-    .attr('stroke', 'rgba(201,151,58,0.3)').attr('stroke-width', 1)
-    .attr('stroke-dasharray', '6 4');
-  g.append('text')
-    .attr('x', innerW + 4).attr('y', yScale(100) + 4)
-    .attr('fill', 'rgba(201,151,58,0.5)').attr('font-size', 9)
-    .attr('font-family', 'Cinzel, serif').text('START');
+    if(balance < bet){
+      break;
+    }
 
-  // Area fill under curve
-  const area = d3.area()
-    .x(d => xScale(d.spin))
-    .y0(innerH)
-    .y1(d => yScale(d.balance))
-    .curve(d3.curveCatmullRom.alpha(0.5));
+    balance -= bet;
 
-  g.append('defs').append('linearGradient')
-    .attr('id', 'areaGrad').attr('x1', '0%').attr('y1', '0%').attr('x2', '0%').attr('y2', '100%')
-    .selectAll('stop')
-    .data([
-      { offset: '0%', color: 'rgba(201,151,58,0.25)' },
-      { offset: '100%', color: 'rgba(201,151,58,0.02)' }
-    ]).enter().append('stop')
-    .attr('offset', d => d.offset).attr('stop-color', d => d.color);
+    const symbols = [0,1,2].map(() =>
+      REEL[Math.floor(rand() * REEL.length)]
+    );
 
-  g.append('path').datum(sessionData)
-    .attr('fill', 'url(#areaGrad)').attr('d', area);
+    let win = 0;
 
-  // Main line
-  const line = d3.line()
-    .x(d => xScale(d.spin))
-    .y(d => yScale(d.balance))
-    .curve(d3.curveCatmullRom.alpha(0.5));
+    // bonus
 
-  g.append('path').datum(sessionData)
-    .attr('fill', 'none')
-    .attr('stroke', 'url(#lineGrad)')
-    .attr('stroke-width', 2.5)
-    .attr('d', line);
+    if(
+      symbols[0] === 'S' &&
+      symbols[1] === 'S' &&
+      symbols[2] === 'S'
+    ){
 
-  svg.select('defs').append('linearGradient')
-    .attr('id', 'lineGrad').attr('x1', '0%').attr('y1', '0%').attr('x2', '100%').attr('y2', '0%')
-    .selectAll('stop')
-    .data([
-      { offset: '0%', color: '#2ABBA8' },
-      { offset: '40%', color: '#C9973A' },
-      { offset: '70%', color: '#F0C060' },
-      { offset: '100%', color: '#CC4040' }
-    ]).enter().append('stop')
-    .attr('offset', d => d.offset).attr('stop-color', d => d.color);
+      const pool = [...CHEST_POOL]
+        .sort(() => rand() - 0.5);
 
-  // Win dots
-  g.selectAll('.win-dot')
-    .data(sessionData.filter(d => d.isWin && d.win >= 8))
-    .enter().append('circle')
-    .attr('class', 'win-dot')
-    .attr('cx', d => xScale(d.spin))
-    .attr('cy', d => yScale(d.balance))
-    .attr('r', d => d.win >= 40 ? 6 : d.win >= 15 ? 4 : 3)
-    .attr('fill', d => d.win >= 40 ? '#E080FF' : d.win >= 15 ? '#F0C060' : '#6FFF90')
-    .attr('stroke', '#060D1A').attr('stroke-width', 1.5)
-    .attr('opacity', 0.9);
+      const picks = pool.slice(0,3);
 
-  // Bonus markers
-  g.selectAll('.bonus-marker')
-    .data(sessionData.filter(d => d.isBonus))
-    .enter().append('text')
-    .attr('x', d => xScale(d.spin))
-    .attr('y', d => yScale(d.balance) - 14)
-    .attr('text-anchor', 'middle')
-    .attr('font-size', 14)
-    .text('⚓');
+      const multiplier =
+        picks.reduce((a,b)=>a+b,0);
 
-  // Annotations
-  ANNOTATIONS.forEach(ann => {
-    const d = sessionData.find(x => x.spin === ann.spin);
-    if (!d) return;
-    const x = xScale(d.spin);
-    const y = yScale(d.balance);
-    const lines = ann.label.split('\n');
-    const color = ann.peak ? '#F0C060' : ann.danger ? '#CC4040' : 'rgba(201,151,58,0.6)';
+      win = multiplier * bet;
 
-    g.append('line')
-      .attr('x1', x).attr('x2', x)
-      .attr('y1', y - 8).attr('y2', y - 36)
-      .attr('stroke', color).attr('stroke-width', 1).attr('stroke-dasharray', '3 2');
+      bonusTriggered = true;
+    }
 
-    g.append('circle').attr('cx', x).attr('cy', y).attr('r', 4)
-      .attr('fill', color).attr('stroke', '#060D1A').attr('stroke-width', 1.5);
+    // 3 match
 
-    const textX = ann.side === 'left' ? x - 6 : x + 6;
-    const anchor = ann.side === 'left' ? 'end' : 'start';
-    lines.forEach((line, i) => {
-      g.append('text')
-        .attr('x', textX).attr('y', y - 40 - (lines.length - 1 - i) * 13)
-        .attr('text-anchor', anchor)
-        .attr('font-family', 'Cinzel, serif')
-        .attr('font-size', i === 0 ? 9 : 8)
-        .attr('font-weight', i === 0 ? 'bold' : 'normal')
-        .attr('fill', i === 0 ? color : 'rgba(240,220,190,0.6)')
-        .text(line);
+    else if(
+      symbols[0] !== 'B' &&
+      symbols[0] === symbols[1] &&
+      symbols[1] === symbols[2]
+    ){
+
+      const key = '3' + symbols[0];
+
+      if(PAYTABLE[key]){
+        win = PAYTABLE[key] * bet;
+      }
+    }
+
+    // 2 match
+
+    else if(
+      symbols[0] !== 'B' &&
+      symbols[0] === symbols[1]
+    ){
+
+      const key = '2' + symbols[0];
+
+      if(PAYTABLE[key]){
+        win = PAYTABLE[key] * bet;
+      }
+    }
+
+    balance += win;
+
+    totalWon += win;
+
+    if(win > biggestWin){
+      biggestWin = win;
+    }
+
+    if(win === 0){
+
+      drySpell++;
+
+      if(drySpell > maxDrySpell){
+        maxDrySpell = drySpell;
+      }
+
+    } else {
+
+      drySpell = 0;
+    }
+
+    events.push({
+      spin,
+      balance,
+      win,
+      drySpell
     });
-  });
+  }
 
-  // Axes
-  const xAxis = d3.axisBottom(xScale).ticks(8).tickFormat(d => `S${d}`);
-  const yAxis = d3.axisLeft(yScale).ticks(5).tickFormat(d => `$${d}`);
+  const spinsPlayed = events.length;
 
-  g.append('g').attr('transform', `translate(0,${innerH})`).call(xAxis)
-    .selectAll('text').attr('fill', 'rgba(201,151,58,0.5)').attr('font-size', 9).attr('font-family', 'Cinzel, serif');
-  g.append('g').call(yAxis)
-    .selectAll('text').attr('fill', 'rgba(201,151,58,0.5)').attr('font-size', 9).attr('font-family', 'Cinzel, serif');
-  g.selectAll('.domain,.tick line').attr('stroke', 'rgba(201,151,58,0.15)');
+  return {
 
-  // Hover interaction
-  const hoverLine = g.append('line').attr('class', 'hover-line').attr('y1', 0).attr('y2', innerH).attr('opacity', 0);
-  const hoverDot = g.append('circle').attr('class', 'hover-dot').attr('opacity', 0);
-  const tooltip = document.getElementById('tooltip');
+    events,
 
-  g.append('rect')
-    .attr('width', innerW).attr('height', innerH)
-    .attr('fill', 'transparent')
-    .on('mousemove', function(event) {
-      const [mx] = d3.pointer(event);
-      const spin = Math.round(xScale.invert(mx));
-      const d = sessionData.find(x => x.spin === spin) || sessionData[0];
-      if (!d) return;
+    finalBalance:
+      Math.round(balance * 100) / 100,
 
-      const x = xScale(d.spin);
-      const y = yScale(d.balance);
+    totalWon:
+      Math.round(totalWon * 100) / 100,
 
-      hoverLine.attr('x1', x).attr('x2', x).attr('opacity', 1);
-      hoverDot.attr('cx', x).attr('cy', y).attr('opacity', 1);
+    realizedRTP:
+      Math.round(
+        (totalWon / (spinsPlayed * bet)) * 10000
+      ) / 100,
 
-      const em = EMOTIONS[d.emotion];
-      document.getElementById('tt-spin').textContent = `SPIN ${d.spin} of ${sessionData.length}`;
-      document.getElementById('tt-balance').textContent = `$${d.balance.toFixed(2)}`;
-      document.getElementById('tt-event').textContent = d.event || (d.drySpell > 0 ? `Dry spell: ${d.drySpell} consecutive losses` : 'No win this spin');
-      document.getElementById('tt-win').textContent = d.win > 0 ? `+$${d.win.toFixed(2)} at $${d.bet} bet` : '';
-      const emEl = document.getElementById('tt-emotion');
-      emEl.textContent = em.label;
-      emEl.style.background = em.color + '25';
-      emEl.style.color = em.color;
+    maxDrySpell,
 
-      const [px, py] = [event.clientX, event.clientY];
-      tooltip.style.left = (px + 16) + 'px';
-      tooltip.style.top = (py - 60) + 'px';
-      tooltip.classList.add('visible');
-    })
-    .on('mouseleave', () => {
-      hoverLine.attr('opacity', 0);
-      hoverDot.attr('opacity', 0);
-      tooltip.classList.remove('visible');
-    });
+    biggestWin:
+      Math.round(biggestWin * 100) / 100,
+
+    bonusTriggered
+  };
 }
 
-function buildEmotionBand() {
-  const wrapper = document.getElementById('emotion-wrapper');
-  const W = wrapper.clientWidth - 32;
-  const H = 72;
-  const innerW = W - margin.left - margin.right;
-  const bandH = 32;
-  const labelH = 20;
+// ─────────────────────────────────────────────
+// EMOTION MODEL
+// ─────────────────────────────────────────────
 
-  const svg = d3.select('#emotion-svg')
-    .attr('width', W)
-    .attr('height', H);
+function buildEmotionTimeline(session, profile){
 
-  svg.selectAll('*').remove();
+  let emotion = 50;
 
-  const g = svg.append('g').attr('transform', `translate(${margin.left},${(H-bandH-labelH)/2})`);
+  const timeline = [];
 
-  const xScale = d3.scaleLinear().domain([1, sessionData.length]).range([0, innerW]);
+  session.events.forEach(event => {
 
-  // Group consecutive same emotions
-  const segments = [];
-  let cur = { emotion: sessionData[0].emotion, start: 1, end: 1 };
-  sessionData.forEach(d => {
-    if (d.emotion === cur.emotion) { cur.end = d.spin; }
-    else { segments.push({ ...cur }); cur = { emotion: d.emotion, start: d.spin, end: d.spin }; }
+    // profile modifiers
+
+    let sensitivity = 1;
+
+    if(profile === 'casual'){
+      sensitivity = 1.5;
+    }
+
+    if(profile === 'grinder'){
+      sensitivity = 0.7;
+    }
+
+    if(profile === 'unlucky'){
+      sensitivity = 1.2;
+    }
+
+    // wins
+
+    if(event.win > 0){
+
+      if(event.win >= 40){
+        emotion += 28 * sensitivity;
+      }
+
+      else if(event.win >= 15){
+        emotion += 18 * sensitivity;
+      }
+
+      else{
+        emotion += 7 * sensitivity;
+      }
+    }
+
+    // losses
+
+    else{
+
+      emotion -= 3 * sensitivity;
+
+      if(event.drySpell >= 15){
+        emotion -= 8 * sensitivity;
+      }
+
+      if(event.drySpell >= 25){
+        emotion -= 12 * sensitivity;
+      }
+
+      if(event.drySpell >= 35){
+        emotion -= 16 * sensitivity;
+      }
+    }
+
+    emotion = Math.max(
+      0,
+      Math.min(100, emotion)
+    );
+
+    timeline.push({
+      spin:event.spin,
+      emotion
+    });
+
   });
-  segments.push({ ...cur });
 
-  // Draw segments
-  segments.forEach(seg => {
-    const em = EMOTIONS[seg.emotion];
-    const x = xScale(seg.start);
-    const w = xScale(seg.end) - xScale(seg.start) + 1;
+  return timeline;
+}
 
-    g.append('rect')
-      .attr('x', x).attr('y', 0)
-      .attr('width', Math.max(w, 1)).attr('height', bandH)
-      .attr('fill', em.color)
-      .attr('opacity', 0.75);
-  });
+// ─────────────────────────────────────────────
+// CHART DRAWING
+// ─────────────────────────────────────────────
 
-  // Border
-  g.append('rect')
-    .attr('x', 0).attr('y', 0)
-    .attr('width', innerW).attr('height', bandH)
-    .attr('fill', 'none').attr('stroke', 'rgba(201,151,58,0.2)').attr('stroke-width', 1)
-    .attr('rx', 3);
+function drawEmotionChart(canvasId, timeline, color){
 
-  // Phase labels
-  const phases = [
-    { label: 'DISCOVERY', start: 1, end: 50 },
-    { label: 'CALIBRATION', start: 51, end: 150 },
-    { label: 'GRIND', start: 151, end: 350 },
-    { label: 'RESOLUTION', start: 351, end: 493 },
-  ];
-  phases.forEach(p => {
-    const x = xScale((p.start + p.end) / 2);
-    g.append('text')
-      .attr('x', x).attr('y', bandH + 16)
-      .attr('text-anchor', 'middle')
-      .attr('font-family', 'Cinzel, serif')
-      .attr('font-size', 8).attr('letter-spacing', 2)
-      .attr('fill', 'rgba(201,151,58,0.5)')
-      .text(p.label);
+  const canvas =
+    document.getElementById(canvasId);
 
-    if (p.start > 1) {
-      g.append('line')
-        .attr('x1', xScale(p.start)).attr('x2', xScale(p.start))
-        .attr('y1', 0).attr('y2', bandH)
-        .attr('stroke', 'rgba(201,151,58,0.3)').attr('stroke-width', 1)
-        .attr('stroke-dasharray', '3 2');
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = 700;
+  canvas.height = 240;
+
+  ctx.clearRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  // background grid
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+
+  for(let i = 0; i < 5; i++){
+
+    const y =
+      (canvas.height / 5) * i;
+
+    ctx.beginPath();
+    ctx.moveTo(0,y);
+    ctx.lineTo(canvas.width,y);
+    ctx.stroke();
+  }
+
+  // line
+
+  ctx.beginPath();
+
+  timeline.forEach((point, index) => {
+
+    const x =
+      (index / (timeline.length - 1))
+      * canvas.width;
+
+    const y =
+      canvas.height -
+      (point.emotion / 100)
+      * canvas.height;
+
+    if(index === 0){
+      ctx.moveTo(x,y);
+    } else {
+      ctx.lineTo(x,y);
     }
   });
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 14;
+
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;
+
+  // endpoint
+
+  const last = timeline[timeline.length - 1];
+
+  const endX = canvas.width;
+
+  const endY =
+    canvas.height -
+    (last.emotion / 100)
+    * canvas.height;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    endX,
+    endY,
+    5,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.fillStyle = color;
+
+  ctx.fill();
 }
 
-function buildLegend() {
-  const container = document.getElementById('legend');
-  Object.entries(EMOTIONS).forEach(([key, val]) => {
-    const item = document.createElement('div');
-    item.className = 'legend-item';
-    item.innerHTML = `<div class="legend-dot" style="background:${val.color}"></div><span class="legend-label">${val.label}</span>`;
-    container.appendChild(item);
-  });
+// ─────────────────────────────────────────────
+// STATS RENDER
+// ─────────────────────────────────────────────
+
+function renderVizStats(id, session){
+
+  document.getElementById(id).innerHTML = `
+
+    <div class="viz-row">
+      <span>Final Balance</span>
+      <strong>$${session.finalBalance}</strong>
+    </div>
+
+    <div class="viz-row">
+      <span>Realized RTP</span>
+      <strong>${session.realizedRTP}%</strong>
+    </div>
+
+    <div class="viz-row">
+      <span>Longest Dry Spell</span>
+      <strong>${session.maxDrySpell}</strong>
+    </div>
+
+    <div class="viz-row">
+      <span>Biggest Win</span>
+      <strong>$${session.biggestWin}</strong>
+    </div>
+
+    <div class="viz-row">
+      <span>Bonus Triggered</span>
+      <strong>
+        ${session.bonusTriggered ? 'YES' : 'NO'}
+      </strong>
+    </div>
+  `;
 }
 
-// Build everything
-buildChart();
-buildEmotionBand();
-buildLegend();
+// ─────────────────────────────────────────────
+// GENERATE VISUALIZATIONS
+// ─────────────────────────────────────────────
 
-// Resize handler
-let resizeTimer;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { buildChart(); buildEmotionBand(); }, 150);
-});
+function generateMultiVisualizations(){
+
+  // Casual Player
+
+  const casual = simulateSession(
+    100,
+    120,
+    1111,
+    1
+  );
+
+  // Experienced Grinder
+
+  const grinder = simulateSession(
+    350,
+    500,
+    2222,
+    3
+  );
+
+  // Unlucky Chaser
+
+  const unlucky = simulateSession(
+    150,
+    350,
+    3333,
+    5
+  );
+
+  // emotion curves
+
+  const casualTimeline =
+    buildEmotionTimeline(casual, 'casual');
+
+  const grinderTimeline =
+    buildEmotionTimeline(grinder, 'grinder');
+
+  const unluckyTimeline =
+    buildEmotionTimeline(unlucky, 'unlucky');
+
+  // draw
+
+  drawEmotionChart(
+    'viz-casual',
+    casualTimeline,
+    '#2ABBA8'
+  );
+
+  drawEmotionChart(
+    'viz-grinder',
+    grinderTimeline,
+    '#F0C060'
+  );
+
+  drawEmotionChart(
+    'viz-unlucky',
+    unluckyTimeline,
+    '#FF6060'
+  );
+
+  // stats
+
+  renderVizStats(
+    'stats-casual',
+    casual
+  );
+
+  renderVizStats(
+    'stats-grinder',
+    grinder
+  );
+
+  renderVizStats(
+    'stats-unlucky',
+    unlucky
+  );
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+
+generateMultiVisualizations();
+
 </script>
+
 </body>
 </html>
